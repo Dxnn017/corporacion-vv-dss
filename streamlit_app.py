@@ -199,32 +199,40 @@ if selected_module == "Dashboard Principal":
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric(
-            "💰 Ingresos Mensuales", 
-            f"S/ {kpis['revenue']:,.0f}",
-            f"+{kpis['monthlyGrowth']:.1f}%"
-        )
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #28a745, #20c997); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin: 0; font-size: 1.2rem;">💰 Ingresos Mensuales</h3>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">S/ 2,850,000</h2>
+            <p style="margin: 0; color: #d4edda;">+12.3% ↗️</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
-        st.metric(
-            "📁 Proyectos Activos", 
-            kpis['activeProjects'],
-            "+2 nuevos"
-        )
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #007bff, #0056b3); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin: 0; font-size: 1.2rem;">📁 Proyectos Activos</h3>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">24</h2>
+            <p style="margin: 0; color: #cce7ff;">+2 nuevos ↗️</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
-        st.metric(
-            "😊 Satisfacción Cliente", 
-            f"{kpis['clientSatisfaction']:.1f}%",
-            "+1.2%"
-        )
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #ffc107, #e0a800); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin: 0; font-size: 1.2rem;">😊 Satisfacción Cliente</h3>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">94.2%</h2>
+            <p style="margin: 0; color: #fff3cd;">+1.2% ↗️</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col4:
-        st.metric(
-            "⚡ Eficiencia Operativa", 
-            f"{kpis['efficiency']:.1f}%",
-            "+3.5%"
-        )
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #dc3545, #c82333); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin: 0; font-size: 1.2rem;">⚡ Eficiencia Operativa</h3>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">87.5%</h2>
+            <p style="margin: 0; color: #f8d7da;">+3.5% ↗️</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -241,7 +249,20 @@ if selected_module == "Dashboard Principal":
             values='revenue', 
             names='area',
             title="📊 Distribución de Ingresos por Área de Servicio",
-            color_discrete_sequence=px.colors.qualitative.Set3
+            color_discrete_sequence=['#003DA5', '#0066CC', '#FFCC00', '#FF6B35', '#28a745', '#6f42c1'],
+            hole=0.4  # Donut chart
+        )
+        fig_pie.update_traces(
+            textposition='inside', 
+            textinfo='percent+label',
+            hovertemplate='<b>%{label}</b><br>Ingresos: S/ %{value:,.0f}<br>Porcentaje: %{percent}<extra></extra>'
+        )
+        fig_pie.update_layout(
+            showlegend=True,
+            legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.01),
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(size=12)
         )
         st.plotly_chart(fig_pie, use_container_width=True)
     
@@ -253,15 +274,103 @@ if selected_module == "Dashboard Principal":
             'Proyectos': [18, 20, 19, 22, 25, 24]
         })
         
-        fig_line = px.line(
-            monthly_data, 
-            x='Mes', 
-            y='Ingresos',
+        fig_line = go.Figure()
+        
+        # Add area chart for revenue
+        fig_line.add_trace(go.Scatter(
+            x=monthly_data['Mes'],
+            y=monthly_data['Ingresos'],
+            mode='lines+markers',
+            name='Ingresos',
+            line=dict(color='#003DA5', width=3),
+            marker=dict(size=8, color='#FFCC00', line=dict(width=2, color='#003DA5')),
+            fill='tonexty',
+            fillcolor='rgba(0, 61, 165, 0.1)',
+            hovertemplate='<b>%{x}</b><br>Ingresos: S/ %{y:,.0f}<extra></extra>'
+        ))
+        
+        fig_line.update_layout(
             title="📈 Evolución de Ingresos Mensuales",
-            markers=True
+            xaxis_title="Mes",
+            yaxis_title="Ingresos (S/)",
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            hovermode='x unified',
+            showlegend=False
         )
-        fig_line.update_traces(line_color='#003DA5')
+        
+        # Add grid
+        fig_line.update_xaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        fig_line.update_yaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        
         st.plotly_chart(fig_line, use_container_width=True)
+    
+    # Métricas Adicionales
+    st.markdown("### 📊 Métricas Adicionales")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        # Project completion rate
+        projects = load_projects_data()
+        completed = len([p for p in projects if p['status'] == 'Completado'])
+        completion_rate = (completed / len(projects)) * 100
+        
+        fig_gauge = go.Figure(go.Indicator(
+            mode = "gauge+number+delta",
+            value = completion_rate,
+            domain = {'x': [0, 1], 'y': [0, 1]},
+            title = {'text': "Tasa de Completación"},
+            delta = {'reference': 80},
+            gauge = {
+                'axis': {'range': [None, 100]},
+                'bar': {'color': "#003DA5"},
+                'steps': [
+                    {'range': [0, 50], 'color': "lightgray"},
+                    {'range': [50, 80], 'color': "gray"}],
+                'threshold': {
+                    'line': {'color': "red", 'width': 4},
+                    'thickness': 0.75,
+                    'value': 90}}))
+        fig_gauge.update_layout(height=300)
+        st.plotly_chart(fig_gauge, use_container_width=True)
+    
+    with col2:
+        # Client distribution by tier
+        clients = load_clients_data()
+        df_clients = pd.DataFrame(clients)
+        tier_counts = df_clients['tier'].value_counts()
+        
+        fig_donut = px.pie(
+            values=tier_counts.values,
+            names=tier_counts.index,
+            title="Distribución de Clientes por Tier",
+            color_discrete_map={
+                'Premium': '#003DA5',
+                'Gold': '#FFCC00',
+                'Standard': '#0066CC'
+            },
+            hole=0.6
+        )
+        fig_donut.update_layout(height=300)
+        st.plotly_chart(fig_donut, use_container_width=True)
+    
+    with col3:
+        # Team efficiency by area
+        df_areas['efficiency_score'] = df_areas['efficiency']
+        
+        fig_bar_eff = px.bar(
+            df_areas.sort_values('efficiency', ascending=True),
+            x='efficiency',
+            y='area',
+            orientation='h',
+            title="Eficiencia por Área",
+            color='efficiency',
+            color_continuous_scale='RdYlGn',
+            text='efficiency'
+        )
+        fig_bar_eff.update_traces(texttemplate='%{text}%', textposition='inside')
+        fig_bar_eff.update_layout(height=300, showlegend=False)
+        st.plotly_chart(fig_bar_eff, use_container_width=True)
 
 # Análisis de Proyectos
 elif selected_module == "Análisis de Proyectos":
@@ -298,14 +407,24 @@ elif selected_module == "Análisis de Proyectos":
             x='name', 
             y='progress',
             color='status',
-            title="📊 Progreso de Proyectos",
+            title="📊 Progreso de Proyectos (%)",
             color_discrete_map={
                 'En Progreso': '#FFCC00',
                 'Completado': '#28a745',
                 'Pendiente': '#dc3545'
-            }
+            },
+            text='progress'
         )
-        fig_bar.update_xaxis(tickangle=45)
+        fig_bar.update_traces(texttemplate='%{text}%', textposition='outside')
+        fig_bar.update_layout(
+            xaxis_tickangle=-45,
+            yaxis_title="Progreso (%)",
+            xaxis_title="Proyecto",
+            showlegend=True,
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)'
+        )
+        fig_bar.update_yaxis(range=[0, 110])
         st.plotly_chart(fig_bar, use_container_width=True)
     
     with col2:
@@ -320,7 +439,19 @@ elif selected_module == "Análisis de Proyectos":
             color='area',
             hover_name='name',
             title="💰 Presupuesto vs Gasto Real",
-            labels={'budget': 'Presupuesto (S/)', 'spent': 'Gastado (S/)'}
+            labels={'budget': 'Presupuesto (S/)', 'spent': 'Gastado (S/)'},
+            color_discrete_sequence=px.colors.qualitative.Set2
+        )
+        # Add diagonal line for perfect budget utilization
+        max_budget = filtered_df['budget'].max()
+        fig_scatter.add_shape(
+            type="line",
+            x0=0, y0=0, x1=max_budget, y1=max_budget,
+            line=dict(color="red", width=2, dash="dash"),
+        )
+        fig_scatter.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)'
         )
         st.plotly_chart(fig_scatter, use_container_width=True)
     
