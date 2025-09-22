@@ -6,12 +6,15 @@ from datetime import datetime, date
 import numpy as np
 
 # Configuración de la página
-st.set_page_config(
-    page_title="V&V Corporación - DSS",
-    page_icon="⚡",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+try:
+    st.set_page_config(
+        page_title="V&V Corporación - DSS",
+        page_icon="🏗️",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+except Exception as e:
+    st.error(f"Error en configuración: {e}")
 
 @st.cache_data
 def load_kpi_data():
@@ -369,65 +372,73 @@ if selected_module == "Dashboard Principal":
             st.error("No se pudieron cargar los datos de áreas de servicio")
     
     with col2:
-        monthly_data = pd.DataFrame({
-            'Mes': ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
-            'Ingresos': [2200000, 2350000, 2180000, 2450000, 2680000, 2850000],
-            'Proyectos': [18, 20, 19, 22, 25, 24],
-            'Clientes': [75, 78, 80, 82, 85, 89]
-        })
-        
-        fig = go.Figure()
-        
-        fig.add_trace(go.Scatter(
-            x=monthly_data['Mes'],
-            y=monthly_data['Ingresos'],
-            mode='lines+markers',
-            name='Ingresos',
-            line=dict(color='#003DA5', width=3),
-            marker=dict(size=8, color='#FFCC00', line=dict(width=2, color='#003DA5')),
-            fill='tonexty',
-            fillcolor='rgba(0, 61, 165, 0.1)',
-            hovertemplate='<b>%{x}</b><br>Ingresos: S/ %{y:,.0f}<extra></extra>',
-            yaxis='y'
-        ))
-        
-        fig.add_trace(go.Bar(
-            x=monthly_data['Mes'],
-            y=monthly_data['Proyectos'],
-            name='Proyectos',
-            marker_color='#28a745',
-            opacity=0.6,
-            hovertemplate='<b>%{x}</b><br>Proyectos: %{y}<extra></extra>',
-            yaxis='y2'
-        ))
-        
-        fig.update_layout(
-            title="📈 Evolución Mensual - Ingresos y Proyectos",
-            xaxis_title="Mes",
-            yaxis=dict(
-                title="Ingresos (S/)",
-                titlefont=dict(color="#003DA5"),
-                tickfont=dict(color="#003DA5")
-            ),
-            yaxis2=dict(
-                title="Proyectos",
-                titlefont=dict(color="#28a745"),
-                tickfont=dict(color="#28a745"),
-                anchor="x",
-                overlaying="y",
-                side="right"
-            ),
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            hovermode='x unified',
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-        )
-        
-        fig.update_xaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
-        fig.update_yaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
-        
-        st.plotly_chart(fig, use_container_width=True)
-    
+        try:
+            monthly_data = pd.DataFrame({
+                'Mes': ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                'Ingresos': [2200000, 2350000, 2180000, 2450000, 2680000, 2850000],
+                'Proyectos': [18, 20, 19, 22, 25, 24],
+                'Clientes': [75, 78, 80, 82, 85, 89]
+            })
+            
+            fig = go.Figure()
+            
+            fig.add_trace(go.Scatter(
+                x=monthly_data['Mes'],
+                y=monthly_data['Ingresos'],
+                mode='lines+markers',
+                name='Ingresos',
+                line=dict(color='#003DA5', width=3),
+                marker=dict(size=8),
+                hovertemplate='Mes: %{x}<br>Ingresos: S/ %{y:,.0f}<extra></extra>'
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=monthly_data['Mes'],
+                y=monthly_data['Proyectos'],
+                mode='lines+markers',
+                name='Proyectos',
+                yaxis='y2',
+                line=dict(color='#28a745', width=3),
+                marker=dict(size=8),
+                hovertemplate='Mes: %{x}<br>Proyectos: %{y}<extra></extra>'
+            ))
+            
+            fig.update_layout(
+                title={
+                    'text': "📈 Evolución Mensual - Ingresos y Proyectos",
+                    'x': 0.5,
+                    'xanchor': 'center'
+                },
+                xaxis_title="Mes",
+                yaxis=dict(
+                    title="Ingresos (S/)",
+                    titlefont=dict(color="#003DA5"),
+                    tickfont=dict(color="#003DA5")
+                ),
+                yaxis2=dict(
+                    title="Proyectos",
+                    titlefont=dict(color="#28a745"),
+                    tickfont=dict(color="#28a745"),
+                    anchor="x",
+                    overlaying="y",
+                    side="right"
+                ),
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                hovermode='x unified',
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            )
+            
+            fig.update_xaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+            fig.update_yaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+            
+            st.plotly_chart(fig, use_container_width=True)
+            
+        except Exception as e:
+            st.error(f"Error al generar gráfico mensual: {e}")
+            st.info("Mostrando datos en tabla como alternativa:")
+            st.dataframe(monthly_data)
+
     # Métricas Adicionales
     st.markdown("### 📊 Métricas Adicionales")
     col1, col2, col3 = st.columns(3)
@@ -941,58 +952,72 @@ elif selected_module == "Reportes Avanzados":
     st.plotly_chart(fig_projection, use_container_width=True)
     
     # Análisis de tendencias por año
-    st.subheader("📅 Análisis de Tendencia Anual")
+    def show_yearly_analysis():
+        st.subheader("📈 Análisis de Tendencia Anual")
+        
+        try:
+            yearly_data = pd.DataFrame({
+                'Año': [2020, 2021, 2022, 2023],
+                'Ingresos': [18500000, 21500000, 24500000, 28500000],
+                'Clientes': [45, 62, 75, 89],
+                'Proyectos': [120, 145, 168, 195]
+            })
+            
+            fig_yearly = go.Figure()
+            
+            fig_yearly.add_trace(go.Bar(
+                x=yearly_data['Año'],
+                y=yearly_data['Ingresos'],
+                name='Ingresos',
+                marker_color='#003DA5',
+                hovertemplate='Año: %{x}<br>Ingresos: S/ %{y:,.0f}<extra></extra>'
+            ))
+            
+            fig_yearly.add_trace(go.Scatter(
+                x=yearly_data['Año'],
+                y=yearly_data['Clientes'],
+                mode='lines+markers',
+                name='Clientes',
+                yaxis='y2',
+                line=dict(color='#FFCC00', width=3),
+                marker=dict(size=10),
+                hovertemplate='Año: %{x}<br>Clientes: %{y}<extra></extra>'
+            ))
+            
+            fig_yearly.update_layout(
+                title={
+                    'text': "📈 Evolución Anual - Ingresos y Clientes",
+                    'x': 0.5,
+                    'xanchor': 'center'
+                },
+                xaxis_title="Año",
+                yaxis=dict(
+                    title="Ingresos (S/)",
+                    titlefont=dict(color="#003DA5"),
+                    tickfont=dict(color="#003DA5")
+                ),
+                yaxis2=dict(
+                    title="Número de Clientes",
+                    titlefont=dict(color="#FFCC00"),
+                    tickfont=dict(color="#FFCC00"),
+                    anchor="x",
+                    overlaying="y",
+                    side="right"
+                ),
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                hovermode='x unified'
+            )
+            
+            st.plotly_chart(fig_yearly, use_container_width=True)
+            
+        except Exception as e:
+            st.error(f"Error al generar análisis anual: {e}")
+            st.info("Mostrando datos en tabla como alternativa:")
+            if 'yearly_data' in locals():
+                st.dataframe(yearly_data)
     
-    yearly_data = pd.DataFrame({
-        'Año': [2020, 2021, 2022, 2023],
-        'Ingresos': [18500000, 21500000, 24500000, 28500000],
-        'Clientes': [45, 62, 75, 89],
-        'Proyectos': [120, 145, 168, 195]
-    })
-    
-    fig_yearly = go.Figure()
-    
-    fig_yearly.add_trace(go.Bar(
-        x=yearly_data['Año'],
-        y=yearly_data['Ingresos'],
-        name='Ingresos',
-        marker_color='#003DA5',
-        hovertemplate='Año: %{x}<br>Ingresos: S/ %{y:,.0f}<extra></extra>'
-    ))
-    
-    fig_yearly.add_trace(go.Scatter(
-        x=yearly_data['Año'],
-        y=yearly_data['Clientes'],
-        name='Clientes',
-        mode='lines+markers',
-        yaxis='y2',
-        line=dict(color='#FFCC00', width=3),
-        marker=dict(size=8, color='#FFCC00'),
-        hovertemplate='Año: %{x}<br>Clientes: %{y}<extra></extra>'
-    ))
-    
-    fig_yearly.update_layout(
-        title="📈 Evolución Anual - Ingresos y Clientes",
-        xaxis_title="Año",
-        yaxis=dict(
-            title="Ingresos (S/)",
-            titlefont=dict(color="#003DA5"),
-            tickfont=dict(color="#003DA5")
-        ),
-        yaxis2=dict(
-            title="Número de Clientes",
-            titlefont=dict(color="#FFCC00"),
-            tickfont=dict(color="#FFCC00"),
-            anchor="x",
-            overlaying="y",
-            side="right"
-        ),
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        hovermode='x unified'
-    )
-    
-    st.plotly_chart(fig_yearly, use_container_width=True)
+    show_yearly_analysis()
 
 # Footer
 st.markdown("---")
@@ -1003,3 +1028,11 @@ st.markdown("""
     <p>© 2023 - Todos los derechos reservados</p>
 </div>
 """, unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    try:
+        # Main execution logic can be placed here if needed
+        pass
+    except Exception as e:
+        st.error(f"Error en la aplicación: {e}")
+        st.info("Por favor, recarga la página o contacta al administrador.")
