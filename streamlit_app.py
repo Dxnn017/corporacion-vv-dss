@@ -289,9 +289,11 @@ elif selected_module == "Configuración":
     ### Para conectar con tu dashboard desplegado:
     
     1. **Despliega tu dashboard Next.js** en Vercel
-    2. **Copia la URL** de tu deployment (ej: `https://corporacion-vv-dss.streamlit.app`)
+    2. **Copia la URL** de tu deployment (ej: `https://tu-app.vercel.app`)
     3. **Actualiza la URL** en el código de Streamlit:
        ```python
        production_urls = [
-           "https://corporacion-vv-dss.streamlit.app",  # Tu URL aquí
+           "https://tu-url-real.vercel.app",  # Tu URL aquí
        ]
+       ```
+""")
