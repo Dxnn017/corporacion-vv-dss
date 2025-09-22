@@ -13,199 +13,220 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Cargar datos (en una implementación real, conectarías a una base de datos)
 @st.cache_data
 def load_kpi_data():
-    return {
-        "revenue": 2850000,
-        "activeProjects": 24,
-        "clientSatisfaction": 94.2,
-        "efficiency": 87.5,
-        "monthlyGrowth": 12.3,
-        "clients": 89,
-        "newClients": 12
-    }
+    """Load KPI data with error handling"""
+    try:
+        return {
+            "revenue": 2850000,
+            "activeProjects": 24,
+            "clientSatisfaction": 94.2,
+            "efficiency": 87.5,
+            "monthlyGrowth": 12.3,
+            "clients": 89,
+            "newClients": 12
+        }
+    except Exception as e:
+        st.error(f"Error loading KPI data: {e}")
+        return {}
 
 @st.cache_data
 def load_projects_data():
-    return pd.DataFrame([
-        {
-            "id": "P001",
-            "name": "Automatización Planta ABB",
-            "client": "ABB",
-            "status": "En Progreso",
-            "progress": 75,
-            "budget": 450000,
-            "spent": 337500,
-            "area": "Automatización",
-            "location": "Lima Norte",
-            "start_date": "2023-01-15",
-            "end_date": "2023-06-30"
-        },
-        {
-            "id": "P002",
-            "name": "Mantenimiento Siemens Q1",
-            "client": "Siemens",
-            "status": "Completado",
-            "progress": 100,
-            "budget": 280000,
-            "spent": 275000,
-            "area": "Mantenimiento",
-            "location": "Callao",
-            "start_date": "2023-02-01",
-            "end_date": "2023-03-15"
-        },
-        {
-            "id": "P003",
-            "name": "Instalación Eléctrica Schneider",
-            "client": "Schneider Electric",
-            "status": "En Progreso",
-            "progress": 45,
-            "budget": 320000,
-            "spent": 144000,
-            "area": "Electricidad",
-            "location": "San Juan de Lurigancho",
-            "start_date": "2023-03-10",
-            "end_date": "2023-08-20"
-        },
-        {
-            "id": "P004",
-            "name": "Sistema Refrigeración Hyundai",
-            "client": "Hyundai",
-            "status": "Completado",
-            "progress": 100,
-            "budget": 280000,
-            "spent": 275000,
-            "area": "Refrigeración",
-            "location": "Ate",
-            "start_date": "2023-01-20",
-            "end_date": "2023-04-10"
-        },
-        {
-            "id": "P005",
-            "name": "Obras Civiles Planta Nuevo",
-            "client": "Nueco",
-            "status": "Pendiente",
-            "progress": 0,
-            "budget": 520000,
-            "spent": 0,
-            "area": "Obras Civiles",
-            "location": "Lima Este",
-            "start_date": "2023-06-01",
-            "end_date": "2023-12-15"
-        }
-    ])
+    """Load projects data as DataFrame with error handling"""
+    try:
+        data = [
+            {
+                "id": "P001",
+                "name": "Automatización Planta ABB",
+                "client": "ABB",
+                "status": "En Progreso",
+                "progress": 75,
+                "budget": 450000,
+                "spent": 337500,
+                "area": "Automatización",
+                "location": "Lima Norte",
+                "start_date": "2023-01-15",
+                "end_date": "2023-06-30"
+            },
+            {
+                "id": "P002",
+                "name": "Mantenimiento Siemens Q1",
+                "client": "Siemens",
+                "status": "Completado",
+                "progress": 100,
+                "budget": 280000,
+                "spent": 275000,
+                "area": "Mantenimiento",
+                "location": "Callao",
+                "start_date": "2023-02-01",
+                "end_date": "2023-03-15"
+            },
+            {
+                "id": "P003",
+                "name": "Instalación Eléctrica Schneider",
+                "client": "Schneider Electric",
+                "status": "En Progreso",
+                "progress": 45,
+                "budget": 320000,
+                "spent": 144000,
+                "area": "Electricidad",
+                "location": "San Juan de Lurigancho",
+                "start_date": "2023-03-10",
+                "end_date": "2023-08-20"
+            },
+            {
+                "id": "P004",
+                "name": "Sistema Refrigeración Hyundai",
+                "client": "Hyundai",
+                "status": "Completado",
+                "progress": 100,
+                "budget": 280000,
+                "spent": 275000,
+                "area": "Refrigeración",
+                "location": "Ate",
+                "start_date": "2023-01-20",
+                "end_date": "2023-04-10"
+            },
+            {
+                "id": "P005",
+                "name": "Obras Civiles Planta Nuevo",
+                "client": "Nueco",
+                "status": "Pendiente",
+                "progress": 0,
+                "budget": 520000,
+                "spent": 0,
+                "area": "Obras Civiles",
+                "location": "Lima Este",
+                "start_date": "2023-06-01",
+                "end_date": "2023-12-15"
+            }
+        ]
+        return pd.DataFrame(data)
+    except Exception as e:
+        st.error(f"Error loading projects data: {e}")
+        return pd.DataFrame()
 
 @st.cache_data
 def load_clients_data():
-    return pd.DataFrame([
-        {
-            "name": "ABB",
-            "tier": "Premium",
-            "revenue": 850000,
-            "projects": 8,
-            "satisfaction": 96,
-            "riskLevel": "Bajo",
-            "since": "2020-03-15"
-        },
-        {
-            "name": "Siemens",
-            "tier": "Premium",
-            "revenue": 720000,
-            "projects": 6,
-            "satisfaction": 94,
-            "riskLevel": "Bajo",
-            "since": "2019-11-20"
-        },
-        {
-            "name": "Schneider Electric",
-            "tier": "Gold",
-            "revenue": 580000,
-            "projects": 5,
-            "satisfaction": 92,
-            "riskLevel": "Bajo",
-            "since": "2021-02-10"
-        },
-        {
-            "name": "Hyundai",
-            "tier": "Gold",
-            "revenue": 420000,
-            "projects": 4,
-            "satisfaction": 89,
-            "riskLevel": "Medio",
-            "since": "2021-07-22"
-        },
-        {
-            "name": "Nueco",
-            "tier": "Standard",
-            "revenue": 280000,
-            "projects": 2,
-            "satisfaction": 85,
-            "riskLevel": "Medio",
-            "since": "2022-05-30"
-        }
-    ])
+    """Load clients data as DataFrame with error handling"""
+    try:
+        data = [
+            {
+                "name": "ABB",
+                "tier": "Premium",
+                "revenue": 850000,
+                "projects": 8,
+                "satisfaction": 96,
+                "riskLevel": "Bajo",
+                "since": "2020-03-15"
+            },
+            {
+                "name": "Siemens",
+                "tier": "Premium",
+                "revenue": 720000,
+                "projects": 6,
+                "satisfaction": 94,
+                "riskLevel": "Bajo",
+                "since": "2019-11-20"
+            },
+            {
+                "name": "Schneider Electric",
+                "tier": "Gold",
+                "revenue": 580000,
+                "projects": 5,
+                "satisfaction": 92,
+                "riskLevel": "Bajo",
+                "since": "2021-02-10"
+            },
+            {
+                "name": "Hyundai",
+                "tier": "Gold",
+                "revenue": 420000,
+                "projects": 4,
+                "satisfaction": 89,
+                "riskLevel": "Medio",
+                "since": "2021-07-22"
+            },
+            {
+                "name": "Nueco",
+                "tier": "Standard",
+                "revenue": 280000,
+                "projects": 2,
+                "satisfaction": 85,
+                "riskLevel": "Medio",
+                "since": "2022-05-30"
+            }
+        ]
+        return pd.DataFrame(data)
+    except Exception as e:
+        st.error(f"Error loading clients data: {e}")
+        return pd.DataFrame()
 
 @st.cache_data
 def load_service_areas_data():
-    return pd.DataFrame([
-        {
-            "area": "Metal Mecánica",
-            "revenue": 980000,
-            "projects": 8,
-            "efficiency": 92,
-            "growth": 15.2,
-            "team_size": 12,
-            "cost": 420000
-        },
-        {
-            "area": "Electricidad",
-            "revenue": 850000,
-            "projects": 7,
-            "efficiency": 89,
-            "growth": 18.7,
-            "team_size": 10,
-            "cost": 380000
-        },
-        {
-            "area": "Automatización",
-            "revenue": 750000,
-            "projects": 6,
-            "efficiency": 88,
-            "growth": 22.1,
-            "team_size": 8,
-            "cost": 320000
-        },
-        {
-            "area": "Refrigeración",
-            "revenue": 620000,
-            "projects": 5,
-            "efficiency": 85,
-            "growth": 8.3,
-            "team_size": 6,
-            "cost": 280000
-        },
-        {
-            "area": "Mantenimiento",
-            "revenue": 580000,
-            "projects": 10,
-            "efficiency": 91,
-            "growth": 12.5,
-            "team_size": 15,
-            "cost": 350000
-        },
-        {
-            "area": "Obras Civiles",
-            "revenue": 520000,
-            "projects": 4,
-            "efficiency": 83,
-            "growth": 5.8,
-            "team_size": 18,
-            "cost": 410000
-        }
-    ])
+    """Load service areas data as DataFrame with error handling"""
+    try:
+        data = [
+            {
+                "area": "Metal Mecánica",
+                "revenue": 980000,
+                "projects": 8,
+                "efficiency": 92,
+                "growth": 15.2,
+                "team_size": 12,
+                "cost": 420000
+            },
+            {
+                "area": "Electricidad",
+                "revenue": 850000,
+                "projects": 7,
+                "efficiency": 89,
+                "growth": 18.7,
+                "team_size": 10,
+                "cost": 380000
+            },
+            {
+                "area": "Automatización",
+                "revenue": 750000,
+                "projects": 6,
+                "efficiency": 88,
+                "growth": 22.1,
+                "team_size": 8,
+                "cost": 320000
+            },
+            {
+                "area": "Refrigeración",
+                "revenue": 620000,
+                "projects": 5,
+                "efficiency": 85,
+                "growth": 8.3,
+                "team_size": 6,
+                "cost": 280000
+            },
+            {
+                "area": "Mantenimiento",
+                "revenue": 580000,
+                "projects": 10,
+                "efficiency": 91,
+                "growth": 12.5,
+                "team_size": 15,
+                "cost": 350000
+            },
+            {
+                "area": "Obras Civiles",
+                "revenue": 520000,
+                "projects": 4,
+                "efficiency": 83,
+                "growth": 5.8,
+                "team_size": 18,
+                "cost": 410000
+            }
+        ]
+        return pd.DataFrame(data)
+    except Exception as e:
+        st.error(f"Error loading service areas data: {e}")
+        return pd.DataFrame()
 
-# Sidebar
 st.sidebar.markdown(
     """
     <div style="text-align: center; padding: 10px; background-color: #003DA5; border-radius: 10px; margin-bottom: 20px;">
@@ -225,26 +246,21 @@ selected_module = st.sidebar.selectbox(
     ["Dashboard Principal", "Análisis de Proyectos", "Análisis de Clientes", "Áreas de Servicio", "Reportes Avanzados"]
 )
 
-# Filtros globales 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🔍 Filtros Globales")
 
-# Filtro de fecha corregido - solución robusta
 try:
-    # Intentar crear un rango de fechas por defecto
     default_start = date(2023, 1, 1)
     default_end = date(2023, 6, 30)
     
-    # Widget de selección de fecha con manejo de errores
     selected_dates = st.sidebar.date_input(
         "Rango de Fechas",
         value=[default_start, default_end],
-        min_value=date(2020, 1, 1),  # Desde 2020
-        max_value=date(2025, 12, 31),  # Hasta 2025 
+        min_value=date(2020, 1, 1),
+        max_value=date(2025, 12, 31),
         help="Selecciona un rango de fechas para filtrar los datos"
     )
     
-    # Validar que se hayan seleccionado exactamente 2 fechas
     if len(selected_dates) == 2:
         start_date, end_date = selected_dates
         st.sidebar.success(f"Período seleccionado: {start_date} - {end_date}")
@@ -254,10 +270,8 @@ try:
         
 except Exception as e:
     st.sidebar.error(f"Error en selección de fechas: {str(e)}")
-    # Valores por defecto en caso de error
     start_date, end_date = date(2023, 1, 1), date(2023, 6, 30)
 
-# Mostrar el período seleccionado
 st.sidebar.markdown(f"**Período activo:** {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}")
 
 # Header principal
@@ -278,6 +292,10 @@ if selected_module == "Dashboard Principal":
     
     # Cargar datos
     kpis = load_kpi_data()
+    
+    if not kpis:
+        st.error("No se pudieron cargar los datos KPI")
+        st.stop()
     
     # Métricas principales
     col1, col2, col3, col4 = st.columns(4)
@@ -320,37 +338,37 @@ if selected_module == "Dashboard Principal":
     
     st.markdown("---")
     
-    # Gráficos de resumen
     col1, col2 = st.columns(2)
     
     with col1:
-        # Ingresos por área de servicio
         areas_data = load_service_areas_data()
         
-        fig_pie = px.pie(
-            areas_data, 
-            values='revenue', 
-            names='area',
-            title="📊 Distribución de Ingresos por Área de Servicio",
-            color_discrete_sequence=['#003DA5', '#0066CC', '#FFCC00', '#FF6B35', '#28a745', '#6f42c1'],
-            hole=0.4  # Donut chart
-        )
-        fig_pie.update_traces(
-            textposition='inside', 
-            textinfo='percent+label',
-            hovertemplate='<b>%{label}</b><br>Ingresos: S/ %{value:,.0f}<br>Porcentaje: %{percent}<extra></extra>'
-        )
-        fig_pie.update_layout(
-            showlegend=True,
-            legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.01),
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(size=12)
-        )
-        st.plotly_chart(fig_pie, use_container_width=True)
+        if not areas_data.empty:
+            fig_pie = px.pie(
+                areas_data, 
+                values='revenue', 
+                names='area',
+                title="📊 Distribución de Ingresos por Área de Servicio",
+                color_discrete_sequence=['#003DA5', '#0066CC', '#FFCC00', '#FF6B35', '#28a745', '#6f42c1'],
+                hole=0.4
+            )
+            fig_pie.update_traces(
+                textposition='inside', 
+                textinfo='percent+label',
+                hovertemplate='<b>%{label}</b><br>Ingresos: S/ %{value:,.0f}<br>Porcentaje: %{percent}<extra></extra>'
+            )
+            fig_pie.update_layout(
+                showlegend=True,
+                legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.01),
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                font=dict(size=12)
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
+        else:
+            st.error("No se pudieron cargar los datos de áreas de servicio")
     
     with col2:
-        # Evolución mensual (datos simulados)
         monthly_data = pd.DataFrame({
             'Mes': ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
             'Ingresos': [2200000, 2350000, 2180000, 2450000, 2680000, 2850000],
@@ -360,7 +378,6 @@ if selected_module == "Dashboard Principal":
         
         fig = go.Figure()
         
-        # Add area chart for revenue
         fig.add_trace(go.Scatter(
             x=monthly_data['Mes'],
             y=monthly_data['Ingresos'],
@@ -374,7 +391,6 @@ if selected_module == "Dashboard Principal":
             yaxis='y'
         ))
         
-        # Add bar chart for projects (secondary axis)
         fig.add_trace(go.Bar(
             x=monthly_data['Mes'],
             y=monthly_data['Proyectos'],
@@ -407,7 +423,6 @@ if selected_module == "Dashboard Principal":
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
         
-        # Add grid
         fig.update_xaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
         fig.update_yaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
         
@@ -418,72 +433,73 @@ if selected_module == "Dashboard Principal":
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        # Project completion rate
         projects = load_projects_data()
-        completed = len(projects[projects['status'] == 'Completado'])
-        completion_rate = (completed / len(projects)) * 100
-        
-        fig_gauge = go.Figure(go.Indicator(
-            mode = "gauge+number+delta",
-            value = completion_rate,
-            domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': "Tasa de Completación"},
-            delta = {'reference': 80},
-            gauge = {
-                'axis': {'range': [None, 100]},
-                'bar': {'color': "#003DA5"},
-                'steps': [
-                    {'range': [0, 50], 'color': "lightgray"},
-                    {'range': [50, 80], 'color': "gray"}],
-                'threshold': {
-                    'line': {'color': "red", 'width': 4},
-                    'thickness': 0.75,
-                    'value': 90}}))
-        fig_gauge.update_layout(height=300)
-        st.plotly_chart(fig_gauge, use_container_width=True)
+        if not projects.empty:
+            completed = len(projects[projects['status'] == 'Completado'])
+            completion_rate = (completed / len(projects)) * 100
+            
+            fig_gauge = go.Figure(go.Indicator(
+                mode = "gauge+number+delta",
+                value = completion_rate,
+                domain = {'x': [0, 1], 'y': [0, 1]},
+                title = {'text': "Tasa de Completación"},
+                delta = {'reference': 80},
+                gauge = {
+                    'axis': {'range': [None, 100]},
+                    'bar': {'color': "#003DA5"},
+                    'steps': [
+                        {'range': [0, 50], 'color': "lightgray"},
+                        {'range': [50, 80], 'color': "gray"}],
+                    'threshold': {
+                        'line': {'color': "red", 'width': 4},
+                        'thickness': 0.75,
+                        'value': 90}}))
+            fig_gauge.update_layout(height=300)
+            st.plotly_chart(fig_gauge, use_container_width=True)
     
     with col2:
-        # Client distribution by tier
         clients = load_clients_data()
-        tier_counts = clients['tier'].value_counts()
-        
-        fig_donut = px.pie(
-            values=tier_counts.values,
-            names=tier_counts.index,
-            title="Distribución de Clientes por Tier",
-            color_discrete_map={
-                'Premium': '#003DA5',
-                'Gold': '#FFCC00',
-                'Standard': '#0066CC'
-            },
-            hole=0.6
-        )
-        fig_donut.update_layout(height=300)
-        st.plotly_chart(fig_donut, use_container_width=True)
+        if not clients.empty:
+            tier_counts = clients['tier'].value_counts()
+            
+            fig_donut = px.pie(
+                values=tier_counts.values,
+                names=tier_counts.index,
+                title="Distribución de Clientes por Tier",
+                color_discrete_map={
+                    'Premium': '#003DA5',
+                    'Gold': '#FFCC00',
+                    'Standard': '#0066CC'
+                },
+                hole=0.6
+            )
+            fig_donut.update_layout(height=300)
+            st.plotly_chart(fig_donut, use_container_width=True)
     
     with col3:
-        # Team efficiency by area
-        areas_data['efficiency_score'] = areas_data['efficiency']
-        
-        fig_bar_eff = px.bar(
-            areas_data.sort_values('efficiency', ascending=True),
-            x='efficiency',
-            y='area',
-            orientation='h',
-            title="Eficiencia por Área",
-            color='efficiency',
-            color_continuous_scale='RdYlGn',
-            text='efficiency'
-        )
-        fig_bar_eff.update_traces(texttemplate='%{text}%', textposition='inside')
-        fig_bar_eff.update_layout(height=300, showlegend=False)
-        st.plotly_chart(fig_bar_eff, use_container_width=True)
+        if not areas_data.empty:
+            fig_bar_eff = px.bar(
+                areas_data.sort_values('efficiency', ascending=True),
+                x='efficiency',
+                y='area',
+                orientation='h',
+                title="Eficiencia por Área",
+                color='efficiency',
+                color_continuous_scale='RdYlGn',
+                text='efficiency'
+            )
+            fig_bar_eff.update_traces(texttemplate='%{text}%', textposition='inside')
+            fig_bar_eff.update_layout(height=300, showlegend=False)
+            st.plotly_chart(fig_bar_eff, use_container_width=True)
 
-# Análisis de Proyectos
 elif selected_module == "Análisis de Proyectos":
     st.header("🏗️ Análisis Detallado de Proyectos")
     
     projects = load_projects_data()
+    
+    if projects.empty:
+        st.error("No se pudieron cargar los datos de proyectos")
+        st.stop()
     
     # Filtros
     col1, col2, col3 = st.columns(3)
@@ -525,7 +541,6 @@ elif selected_module == "Análisis de Proyectos":
         col1, col2 = st.columns(2)
         
         with col1:
-            # Progreso de proyectos
             fig_bar = px.bar(
                 filtered_df, 
                 x='name', 
@@ -541,20 +556,17 @@ elif selected_module == "Análisis de Proyectos":
             )
             fig_bar.update_traces(texttemplate='%{text}%', textposition='outside')
             fig_bar.update_layout(
-                xaxis_tickangle=-45,
+                xaxis=dict(tickangle=-45),
                 yaxis_title="Progreso (%)",
                 xaxis_title="Proyecto",
                 showlegend=True,
                 plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)'
+                paper_bgcolor='rgba(0,0,0,0)',
+                yaxis=dict(range=[0, 110])
             )
-            # Solo actualizar el rango del eje Y si hay datos
-            if len(filtered_df) > 0:
-                fig_bar.update_yaxis(range=[0, 110])
             st.plotly_chart(fig_bar, use_container_width=True)
         
         with col2:
-            # Utilización de presupuesto
             filtered_df['budget_utilization'] = (filtered_df['spent'] / filtered_df['budget']) * 100
             
             fig_scatter = px.scatter(
@@ -568,7 +580,6 @@ elif selected_module == "Análisis de Proyectos":
                 labels={'budget': 'Presupuesto (S/)', 'spent': 'Gastado (S/)'},
                 color_discrete_sequence=px.colors.qualitative.Set2
             )
-            # Add diagonal line for perfect budget utilization
             if len(filtered_df) > 0:
                 max_budget = filtered_df['budget'].max()
                 fig_scatter.add_shape(
@@ -588,7 +599,6 @@ elif selected_module == "Análisis de Proyectos":
     st.subheader("📋 Detalles de Proyectos")
     
     if len(filtered_df) > 0:
-        # Formatear columnas monetarias para mejor visualización
         display_df = filtered_df.copy()
         display_df['budget'] = display_df['budget'].apply(lambda x: f"S/ {x:,.0f}")
         display_df['spent'] = display_df['spent'].apply(lambda x: f"S/ {x:,.0f}")
@@ -596,7 +606,6 @@ elif selected_module == "Análisis de Proyectos":
         
         st.dataframe(display_df, use_container_width=True)
         
-        # Opción para descargar datos
         csv = filtered_df.to_csv(index=False).encode('utf-8')
         st.download_button(
             label="📥 Descargar datos como CSV",
@@ -607,11 +616,14 @@ elif selected_module == "Análisis de Proyectos":
     else:
         st.info("No hay datos para mostrar con los filtros actuales.")
 
-# Análisis de Clientes
 elif selected_module == "Análisis de Clientes":
     st.header("👥 Análisis de Clientes")
     
     clients = load_clients_data()
+    
+    if clients.empty:
+        st.error("No se pudieron cargar los datos de clientes")
+        st.stop()
     
     # Métricas de clientes
     col1, col2, col3, col4 = st.columns(4)
@@ -647,7 +659,6 @@ elif selected_module == "Análisis de Clientes":
         col1, col2 = st.columns(2)
         
         with col1:
-            # Ingresos por cliente
             fig_bar = px.bar(
                 filtered_clients.sort_values('revenue', ascending=True),
                 x='revenue',
@@ -664,7 +675,6 @@ elif selected_module == "Análisis de Clientes":
             st.plotly_chart(fig_bar, use_container_width=True)
         
         with col2:
-            # Satisfacción vs Proyectos
             fig_scatter = px.scatter(
                 filtered_clients,
                 x='projects',
@@ -683,14 +693,12 @@ elif selected_module == "Análisis de Clientes":
     st.subheader("📋 Cartera de Clientes")
     
     if len(filtered_clients) > 0:
-        # Formatear columnas para mejor visualización
         display_clients = filtered_clients.copy()
         display_clients['revenue'] = display_clients['revenue'].apply(lambda x: f"S/ {x:,.0f}")
         display_clients['satisfaction'] = display_clients['satisfaction'].apply(lambda x: f"{x}%")
         
         st.dataframe(display_clients, use_container_width=True)
         
-        # Opción para descargar datos
         csv = filtered_clients.to_csv(index=False).encode('utf-8')
         st.download_button(
             label="📥 Descargar datos como CSV",
@@ -701,17 +709,19 @@ elif selected_module == "Análisis de Clientes":
     else:
         st.info("No hay datos para mostrar con los filtros actuales.")
 
-# Áreas de Servicio
 elif selected_module == "Áreas de Servicio":
     st.header("⚙️ Rendimiento por Áreas de Servicio")
     
     areas_data = load_service_areas_data()
     
+    if areas_data.empty:
+        st.error("No se pudieron cargar los datos de áreas de servicio")
+        st.stop()
+    
     # Métricas por área
     col1, col2 = st.columns(2)
     
     with col1:
-        # Ingresos y eficiencia
         fig_bar = go.Figure()
         
         fig_bar.add_trace(go.Bar(
@@ -743,7 +753,6 @@ elif selected_module == "Áreas de Servicio":
         st.plotly_chart(fig_bar, use_container_width=True)
     
     with col2:
-        # Crecimiento por área
         fig_growth = px.bar(
             areas_data.sort_values('growth', ascending=True),
             x='growth',
@@ -758,7 +767,6 @@ elif selected_module == "Áreas de Servicio":
     # Análisis detallado
     st.subheader("📊 Análisis Multidimensional")
     
-    # Calcular ROI
     areas_data['roi'] = (areas_data['revenue'] - areas_data['cost']) / areas_data['cost'] * 100
     
     fig_bubble = px.scatter(
@@ -782,7 +790,6 @@ elif selected_module == "Áreas de Servicio":
     # Tabla detallada
     st.subheader("📋 Detalles por Área de Servicio")
     
-    # Formatear columnas para mejor visualización
     display_areas = areas_data.copy()
     display_areas['revenue'] = display_areas['revenue'].apply(lambda x: f"S/ {x:,.0f}")
     display_areas['cost'] = display_areas['cost'].apply(lambda x: f"S/ {x:,.0f}")
@@ -792,7 +799,6 @@ elif selected_module == "Áreas de Servicio":
     
     st.dataframe(display_areas, use_container_width=True)
     
-    # Opción para descargar datos
     csv = areas_data.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📥 Descargar datos como CSV",
@@ -801,7 +807,6 @@ elif selected_module == "Áreas de Servicio":
         mime="text/csv",
     )
 
-# Reportes Avanzados (continuación)
 elif selected_module == "Reportes Avanzados":
     st.header("📊 Reportes y Análisis Avanzados")
     
@@ -814,11 +819,14 @@ elif selected_module == "Reportes Avanzados":
     clients = load_clients_data()
     areas = load_service_areas_data()
     
+    if projects.empty or clients.empty or areas.empty:
+        st.error("No se pudieron cargar todos los datos necesarios")
+        st.stop()
+    
     # Crear dashboard comparativo
     col1, col2 = st.columns(2)
     
     with col1:
-        # Rendimiento por cliente vs área
         client_area_summary = projects.groupby(['client', 'area']).agg({
             'budget': 'sum',
             'spent': 'sum',
@@ -836,7 +844,6 @@ elif selected_module == "Reportes Avanzados":
         st.plotly_chart(fig_heatmap, use_container_width=True)
     
     with col2:
-        # Análisis de rentabilidad
         areas['roi'] = (areas['revenue'] / areas['team_size']) / 1000
         
         fig_roi = px.bar(
@@ -882,10 +889,8 @@ elif selected_module == "Reportes Avanzados":
         - Satisfacción: {best_client['satisfaction']}%
         """)
     
-    # Análisis predictivo simple (simulado)
     st.subheader("🔮 Proyecciones Futuras")
     
-    # Simular datos de proyección
     months = ['Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
     projected_revenue = [3000000, 3150000, 3300000, 3450000, 3600000, 3750000]
     
@@ -899,7 +904,6 @@ elif selected_module == "Reportes Avanzados":
         marker=dict(size=8, color='#28a745')
     ))
     
-    # Añadir datos históricos
     historical_months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun']
     historical_revenue = [2200000, 2350000, 2180000, 2450000, 2680000, 2850000]
     
@@ -912,7 +916,6 @@ elif selected_module == "Reportes Avanzados":
         marker=dict(size=8, color='#003DA5')
     ))
     
-    # Proyección 2024
     months_2024 = ['Ene 24', 'Feb 24', 'Mar 24', 'Abr 24', 'May 24', 'Jun 24']
     projected_2024 = [3900000, 4050000, 4200000, 4350000, 4500000, 4650000]
     
@@ -940,7 +943,6 @@ elif selected_module == "Reportes Avanzados":
     # Análisis de tendencias por año
     st.subheader("📅 Análisis de Tendencia Anual")
     
-    # Datos simulados por año
     yearly_data = pd.DataFrame({
         'Año': [2020, 2021, 2022, 2023],
         'Ingresos': [18500000, 21500000, 24500000, 28500000],
