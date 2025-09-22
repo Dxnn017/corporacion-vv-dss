@@ -45,8 +45,8 @@ def get_base_url():
     
     return None
 
-BASE_URL = get_base_url()
-API_URL = f"{BASE_URL}/api/data" if BASE_URL else None
+BASE_URL = None
+API_URL = None
 
 def show_connection_status():
     """Muestra el estado de conexión con el dashboard"""
