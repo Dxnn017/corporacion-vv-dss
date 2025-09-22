@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 import json
-
+import os
 
 # Configuración de la página
 st.set_page_config(
@@ -15,62 +15,125 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# URL base de tu dashboard Next.js (cambiar por tu URL de producción)
-BASE_URL = "https://tu-dashboard-url.vercel.app"  # Cambiar por tu URL real
-API_URL = f"{BASE_URL}/api/data"
+# Configuración de URLs
+def get_base_url():
+    """Detecta automáticamente la URL base del dashboard"""
+    # Intenta obtener la URL desde variables de entorno
+    if 'DASHBOARD_URL' in os.environ:
+        return os.environ['DASHBOARD_URL']
+    
+    # URLs de prueba (cambiar por tu URL real cuando despliegues)
+    production_urls = [
+        "https://corporacion-vv-dss.vercel.app",  # Cambiar por tu URL de Vercel
+        "https://vv-dss-dashboard.vercel.app",    # URL alternativa
+    ]
+    
+    # En desarrollo local
+    local_urls = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ]
+    
+    # Probar URLs en orden de prioridad
+    for url in production_urls + local_urls:
+        try:
+            response = requests.get(f"{url}/api/data?type=kpis", timeout=5)
+            if response.status_code == 200:
+                return url
+        except:
+            continue
+    
+    return None
+
+BASE_URL = get_base_url()
+API_URL = f"{BASE_URL}/api/data" if BASE_URL else None
+
+def show_connection_status():
+    """Muestra el estado de conexión con el dashboard"""
+    if BASE_URL:
+        st.success(f"✅ Conectado al dashboard: {BASE_URL}")
+        return True
+    else:
+        st.error("❌ No se pudo conectar al dashboard. Verifica que esté desplegado.")
+        st.info("💡 Asegúrate de que tu dashboard Next.js esté desplegado en Vercel y actualiza la URL en el código.")
+        return False
 
 # Funciones para conectar con el dashboard
 @st.cache_data(ttl=300)  # Cache por 5 minutos
 def fetch_dashboard_data(data_type):
     """Obtiene datos del dashboard Next.js"""
+    if not API_URL:
+        return None
+        
     try:
-        response = requests.get(f"{API_URL}?type={data_type}")
+        response = requests.get(f"{API_URL}?type={data_type}", timeout=10)
         if response.status_code == 200:
             return response.json()
         else:
             st.error(f"Error obteniendo datos: {response.status_code}")
             return None
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         st.error(f"Error de conexión: {str(e)}")
         return None
 
-def send_data_to_dashboard(data_type, payload):
-    """Envía datos al dashboard Next.js"""
-    try:
-        response = requests.post(API_URL, json={
-            "type": data_type,
-            "payload": payload
-        })
-        return response.status_code == 200
-    except Exception as e:
-        st.error(f"Error enviando datos: {str(e)}")
-        return False
+def get_fallback_data(data_type):
+    """Datos de respaldo cuando no hay conexión con el API"""
+    fallback_data = {
+        "kpis": {
+            "revenue": 2850000,
+            "activeProjects": 24,
+            "clientSatisfaction": 94.2,
+            "efficiency": 87.5,
+            "monthlyGrowth": 12.3,
+            "timestamp": datetime.now().isoformat(),
+        },
+        "projects": [
+            {
+                "id": "P001",
+                "name": "Modernización Sistema Eléctrico ABB",
+                "client": "ABB",
+                "status": "En Progreso",
+                "progress": 75,
+                "budget": 450000,
+                "spent": 337500,
+                "area": "Electricidad",
+            }
+        ],
+        "clients": [
+            {
+                "id": "C001",
+                "name": "ABB",
+                "tier": "Premium",
+                "revenue": 850000,
+                "projects": 8,
+                "satisfaction": 96,
+                "riskLevel": "Bajo",
+            }
+        ],
+        "service-areas": [
+            {
+                "area": "Electricidad",
+                "revenue": 980000,
+                "projects": 8,
+                "efficiency": 92,
+                "growth": 15.2,
+            }
+        ]
+    }
+    return fallback_data.get(data_type, {})
 
-# Header con branding de V&V
-st.markdown("""
-<div style="background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%); padding: 1rem; border-radius: 10px; margin-bottom: 2rem;">
-    <h1 style="color: white; margin: 0; text-align: center;">
-        🏗️ V&V Corporación Comercial S.A.C
-    </h1>
-    <p style="color: #fbbf24; margin: 0; text-align: center; font-size: 1.1rem;">
-        Sistema de Análisis Avanzado - Streamlit Integration
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-# Sidebar para navegación
-st.sidebar.title("📊 Módulos de Análisis")
-selected_module = st.sidebar.selectbox(
-    "Seleccionar módulo:",
-    ["Dashboard Principal", "Análisis de Proyectos", "Análisis de Clientes", "Áreas de Servicio", "Configuración"]
-)
 
 # Dashboard Principal
 if selected_module == "Dashboard Principal":
     st.header("📈 Dashboard Ejecutivo")
     
+    is_connected = show_connection_status()
+    
     # Obtener KPIs del dashboard
     kpis = fetch_dashboard_data("kpis")
+    if not kpis and not is_connected:
+        st.warning("⚠️ Usando datos de demostración (sin conexión al dashboard)")
+        kpis = get_fallback_data("kpis")
     
     if kpis:
         col1, col2, col3, col4 = st.columns(4)
@@ -107,7 +170,11 @@ if selected_module == "Dashboard Principal":
 elif selected_module == "Análisis de Proyectos":
     st.header("🏗️ Análisis Detallado de Proyectos")
     
+    show_connection_status()
+    
     projects = fetch_dashboard_data("projects")
+    if not projects:
+        projects = get_fallback_data("projects")
     
     if projects:
         df_projects = pd.DataFrame(projects)
@@ -135,7 +202,11 @@ elif selected_module == "Análisis de Proyectos":
 elif selected_module == "Análisis de Clientes":
     st.header("👥 Análisis de Clientes")
     
+    show_connection_status()
+    
     clients = fetch_dashboard_data("clients")
+    if not clients:
+        clients = get_fallback_data("clients")
     
     if clients:
         df_clients = pd.DataFrame(clients)
@@ -165,7 +236,11 @@ elif selected_module == "Análisis de Clientes":
 elif selected_module == "Áreas de Servicio":
     st.header("⚙️ Rendimiento por Áreas de Servicio")
     
+    show_connection_status()
+    
     service_areas = fetch_dashboard_data("service-areas")
+    if not service_areas:
+        service_areas = get_fallback_data("service-areas")
     
     if service_areas:
         df_areas = pd.DataFrame(service_areas)
@@ -203,39 +278,20 @@ elif selected_module == "Áreas de Servicio":
 elif selected_module == "Configuración":
     st.header("⚙️ Configuración de Integración")
     
-    st.subheader("Conexión con Dashboard")
+    st.subheader("Estado de Conexión")
+    show_connection_status()
     
-    # Test de conexión
-    if st.button("Probar Conexión"):
-        test_data = fetch_dashboard_data("kpis")
-        if test_data:
-            st.success("✅ Conexión exitosa con el dashboard")
-            st.json(test_data)
-        else:
-            st.error("❌ Error de conexión")
+    if BASE_URL:
+        st.info(f"Dashboard URL: {BASE_URL}")
     
-    st.subheader("Enviar Datos de Prueba")
+    st.subheader("Instrucciones de Configuración")
+    st.markdown("""
+    ### Para conectar con tu dashboard desplegado:
     
-    # Formulario para enviar datos
-    with st.form("send_data_form"):
-        data_type = st.selectbox("Tipo de datos:", ["analytics", "feedback", "alerts"])
-        data_content = st.text_area("Contenido (JSON):", '{"test": "data"}')
-        
-        if st.form_submit_button("Enviar Datos"):
-            try:
-                payload = json.loads(data_content)
-                if send_data_to_dashboard(data_type, payload):
-                    st.success("✅ Datos enviados correctamente")
-                else:
-                    st.error("❌ Error enviando datos")
-            except json.JSONDecodeError:
-                st.error("❌ Formato JSON inválido")
-
-# Footer
-st.markdown("---")
-st.markdown("""
-<div style="text-align: center; color: #6b7280; padding: 1rem;">
-    <p>V&V Corporación Comercial S.A.C - Sistema Integrado de Análisis</p>
-    <p>📞 972 257 767 | 📍 Calle Manuel Ubalde N° 1125 - A. PJ. El Porvenir</p>
-</div>
-""", unsafe_allow_html=True)
+    1. **Despliega tu dashboard Next.js** en Vercel
+    2. **Copia la URL** de tu deployment (ej: `https://tu-app.vercel.app`)
+    3. **Actualiza la URL** en el código de Streamlit:
+       ```python
+       production_urls = [
+           "https://corporacion-vv-dss.streamlit.app",  # Tu URL aquí
+       ]
