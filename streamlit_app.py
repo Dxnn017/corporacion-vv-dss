@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime
+from datetime import datetime, date
 import numpy as np
 
 # Configuración de la página
@@ -225,17 +225,40 @@ selected_module = st.sidebar.selectbox(
     ["Dashboard Principal", "Análisis de Proyectos", "Análisis de Clientes", "Áreas de Servicio", "Reportes Avanzados"]
 )
 
-# Filtros globales (si es necesario)
+# Filtros globales 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🔍 Filtros Globales")
 
-# Filtro de fecha (si tus datos tienen timestamps)
-date_range = st.sidebar.date_input(
-    "Rango de Fechas",
-    value=[datetime(2023, 1, 1), datetime(2023, 6, 30)],
-    min_value=datetime(2022, 1, 1),
-    max_value=datetime(2023, 12, 31)
-)
+# Filtro de fecha corregido - solución robusta
+try:
+    # Intentar crear un rango de fechas por defecto
+    default_start = date(2023, 1, 1)
+    default_end = date(2023, 6, 30)
+    
+    # Widget de selección de fecha con manejo de errores
+    selected_dates = st.sidebar.date_input(
+        "Rango de Fechas",
+        value=[default_start, default_end],
+        min_value=date(2020, 1, 1),  # Desde 2020
+        max_value=date(2025, 12, 31),  # Hasta 2025 
+        help="Selecciona un rango de fechas para filtrar los datos"
+    )
+    
+    # Validar que se hayan seleccionado exactamente 2 fechas
+    if len(selected_dates) == 2:
+        start_date, end_date = selected_dates
+        st.sidebar.success(f"Período seleccionado: {start_date} - {end_date}")
+    else:
+        st.sidebar.warning("Por favor selecciona un rango de fechas completo")
+        start_date, end_date = default_start, default_end
+        
+except Exception as e:
+    st.sidebar.error(f"Error en selección de fechas: {str(e)}")
+    # Valores por defecto en caso de error
+    start_date, end_date = date(2023, 1, 1), date(2023, 6, 30)
+
+# Mostrar el período seleccionado
+st.sidebar.markdown(f"**Período activo:** {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}")
 
 # Header principal
 st.markdown("""
@@ -491,86 +514,98 @@ elif selected_module == "Análisis de Proyectos":
         total_spent = filtered_df['spent'].sum()
         st.metric("Total Gastado", f"S/ {total_spent:,.0f}")
     with col4:
-        avg_progress = filtered_df['progress'].mean()
-        st.metric("Progreso Promedio", f"{avg_progress:.1f}%")
+        if len(filtered_df) > 0:
+            avg_progress = filtered_df['progress'].mean()
+            st.metric("Progreso Promedio", f"{avg_progress:.1f}%")
+        else:
+            st.metric("Progreso Promedio", "N/A")
     
     # Gráficos
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Progreso de proyectos
-        fig_bar = px.bar(
-            filtered_df, 
-            x='name', 
-            y='progress',
-            color='status',
-            title="📊 Progreso de Proyectos (%)",
-            color_discrete_map={
-                'En Progreso': '#FFCC00',
-                'Completado': '#28a745',
-                'Pendiente': '#dc3545'
-            },
-            text='progress'
-        )
-        fig_bar.update_traces(texttemplate='%{text}%', textposition='outside')
-        fig_bar.update_layout(
-            xaxis_tickangle=-45,
-            yaxis_title="Progreso (%)",
-            xaxis_title="Proyecto",
-            showlegend=True,
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)'
-        )
-        fig_bar.update_yaxis(range=[0, 110])
-        st.plotly_chart(fig_bar, use_container_width=True)
-    
-    with col2:
-        # Utilización de presupuesto
-        filtered_df['budget_utilization'] = (filtered_df['spent'] / filtered_df['budget']) * 100
+    if len(filtered_df) > 0:
+        col1, col2 = st.columns(2)
         
-        fig_scatter = px.scatter(
-            filtered_df,
-            x='budget',
-            y='spent',
-            size='progress',
-            color='area',
-            hover_name='name',
-            title="💰 Presupuesto vs Gasto Real",
-            labels={'budget': 'Presupuesto (S/)', 'spent': 'Gastado (S/)'},
-            color_discrete_sequence=px.colors.qualitative.Set2
-        )
-        # Add diagonal line for perfect budget utilization
-        max_budget = filtered_df['budget'].max()
-        fig_scatter.add_shape(
-            type="line",
-            x0=0, y0=0, x1=max_budget, y1=max_budget,
-            line=dict(color="red", width=2, dash="dash"),
-        )
-        fig_scatter.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)'
-        )
-        st.plotly_chart(fig_scatter, use_container_width=True)
+        with col1:
+            # Progreso de proyectos
+            fig_bar = px.bar(
+                filtered_df, 
+                x='name', 
+                y='progress',
+                color='status',
+                title="📊 Progreso de Proyectos (%)",
+                color_discrete_map={
+                    'En Progreso': '#FFCC00',
+                    'Completado': '#28a745',
+                    'Pendiente': '#dc3545'
+                },
+                text='progress'
+            )
+            fig_bar.update_traces(texttemplate='%{text}%', textposition='outside')
+            fig_bar.update_layout(
+                xaxis_tickangle=-45,
+                yaxis_title="Progreso (%)",
+                xaxis_title="Proyecto",
+                showlegend=True,
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)'
+            )
+            # Solo actualizar el rango del eje Y si hay datos
+            if len(filtered_df) > 0:
+                fig_bar.update_yaxis(range=[0, 110])
+            st.plotly_chart(fig_bar, use_container_width=True)
+        
+        with col2:
+            # Utilización de presupuesto
+            filtered_df['budget_utilization'] = (filtered_df['spent'] / filtered_df['budget']) * 100
+            
+            fig_scatter = px.scatter(
+                filtered_df,
+                x='budget',
+                y='spent',
+                size='progress',
+                color='area',
+                hover_name='name',
+                title="💰 Presupuesto vs Gasto Real",
+                labels={'budget': 'Presupuesto (S/)', 'spent': 'Gastado (S/)'},
+                color_discrete_sequence=px.colors.qualitative.Set2
+            )
+            # Add diagonal line for perfect budget utilization
+            if len(filtered_df) > 0:
+                max_budget = filtered_df['budget'].max()
+                fig_scatter.add_shape(
+                    type="line",
+                    x0=0, y0=0, x1=max_budget, y1=max_budget,
+                    line=dict(color="red", width=2, dash="dash"),
+                )
+            fig_scatter.update_layout(
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)'
+            )
+            st.plotly_chart(fig_scatter, use_container_width=True)
+    else:
+        st.warning("No hay proyectos que coincidan con los filtros seleccionados.")
     
     # Tabla detallada
     st.subheader("📋 Detalles de Proyectos")
     
-    # Formatear columnas monetarias para mejor visualización
-    display_df = filtered_df.copy()
-    display_df['budget'] = display_df['budget'].apply(lambda x: f"S/ {x:,.0f}")
-    display_df['spent'] = display_df['spent'].apply(lambda x: f"S/ {x:,.0f}")
-    display_df['progress'] = display_df['progress'].apply(lambda x: f"{x}%")
-    
-    st.dataframe(display_df, use_container_width=True)
-    
-    # Opción para descargar datos
-    csv = filtered_df.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Descargar datos como CSV",
-        data=csv,
-        file_name="proyectos_vv_corporacion.csv",
-        mime="text/csv",
-    )
+    if len(filtered_df) > 0:
+        # Formatear columnas monetarias para mejor visualización
+        display_df = filtered_df.copy()
+        display_df['budget'] = display_df['budget'].apply(lambda x: f"S/ {x:,.0f}")
+        display_df['spent'] = display_df['spent'].apply(lambda x: f"S/ {x:,.0f}")
+        display_df['progress'] = display_df['progress'].apply(lambda x: f"{x}%")
+        
+        st.dataframe(display_df, use_container_width=True)
+        
+        # Opción para descargar datos
+        csv = filtered_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Descargar datos como CSV",
+            data=csv,
+            file_name="proyectos_vv_corporacion.csv",
+            mime="text/csv",
+        )
+    else:
+        st.info("No hay datos para mostrar con los filtros actuales.")
 
 # Análisis de Clientes
 elif selected_module == "Análisis de Clientes":
@@ -608,57 +643,63 @@ elif selected_module == "Análisis de Clientes":
         filtered_clients = filtered_clients[filtered_clients['riskLevel'] == risk_filter]
     
     # Gráficos de análisis
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Ingresos por cliente
-        fig_bar = px.bar(
-            filtered_clients.sort_values('revenue', ascending=True),
-            x='revenue',
-            y='name',
-            orientation='h',
-            color='tier',
-            title="💰 Ingresos por Cliente",
-            color_discrete_map={
-                'Premium': '#003DA5',
-                'Gold': '#FFCC00',
-                'Standard': '#0066CC'
-            }
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
-    
-    with col2:
-        # Satisfacción vs Proyectos
-        fig_scatter = px.scatter(
-            filtered_clients,
-            x='projects',
-            y='satisfaction',
-            size='revenue',
-            color='tier',
-            hover_name='name',
-            title="📊 Satisfacción vs Número de Proyectos",
-            labels={'projects': 'Número de Proyectos', 'satisfaction': 'Satisfacción (%)'}
-        )
-        st.plotly_chart(fig_scatter, use_container_width=True)
+    if len(filtered_clients) > 0:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Ingresos por cliente
+            fig_bar = px.bar(
+                filtered_clients.sort_values('revenue', ascending=True),
+                x='revenue',
+                y='name',
+                orientation='h',
+                color='tier',
+                title="💰 Ingresos por Cliente",
+                color_discrete_map={
+                    'Premium': '#003DA5',
+                    'Gold': '#FFCC00',
+                    'Standard': '#0066CC'
+                }
+            )
+            st.plotly_chart(fig_bar, use_container_width=True)
+        
+        with col2:
+            # Satisfacción vs Proyectos
+            fig_scatter = px.scatter(
+                filtered_clients,
+                x='projects',
+                y='satisfaction',
+                size='revenue',
+                color='tier',
+                hover_name='name',
+                title="📊 Satisfacción vs Número de Proyectos",
+                labels={'projects': 'Número de Proyectos', 'satisfaction': 'Satisfacción (%)'}
+            )
+            st.plotly_chart(fig_scatter, use_container_width=True)
+    else:
+        st.warning("No hay clientes que coincidan con los filtros seleccionados.")
     
     # Tabla de clientes
     st.subheader("📋 Cartera de Clientes")
     
-    # Formatear columnas para mejor visualización
-    display_clients = filtered_clients.copy()
-    display_clients['revenue'] = display_clients['revenue'].apply(lambda x: f"S/ {x:,.0f}")
-    display_clients['satisfaction'] = display_clients['satisfaction'].apply(lambda x: f"{x}%")
-    
-    st.dataframe(display_clients, use_container_width=True)
-    
-    # Opción para descargar datos
-    csv = filtered_clients.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Descargar datos como CSV",
-        data=csv,
-        file_name="clientes_vv_corporacion.csv",
-        mime="text/csv",
-    )
+    if len(filtered_clients) > 0:
+        # Formatear columnas para mejor visualización
+        display_clients = filtered_clients.copy()
+        display_clients['revenue'] = display_clients['revenue'].apply(lambda x: f"S/ {x:,.0f}")
+        display_clients['satisfaction'] = display_clients['satisfaction'].apply(lambda x: f"{x}%")
+        
+        st.dataframe(display_clients, use_container_width=True)
+        
+        # Opción para descargar datos
+        csv = filtered_clients.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Descargar datos como CSV",
+            data=csv,
+            file_name="clientes_vv_corporacion.csv",
+            mime="text/csv",
+        )
+    else:
+        st.info("No hay datos para mostrar con los filtros actuales.")
 
 # Áreas de Servicio
 elif selected_module == "Áreas de Servicio":
@@ -760,7 +801,7 @@ elif selected_module == "Áreas de Servicio":
         mime="text/csv",
     )
 
-# Reportes Avanzados
+# Reportes Avanzados (continuación)
 elif selected_module == "Reportes Avanzados":
     st.header("📊 Reportes y Análisis Avanzados")
     
@@ -820,6 +861,7 @@ elif selected_module == "Reportes Avanzados":
         - Ingresos: S/ {kpis['revenue']:,.0f}
         - Crecimiento: +{kpis['monthlyGrowth']:.1f}%
         - Proyectos activos: {kpis['activeProjects']}
+        - Período: {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}
         """)
     
     with col2:
@@ -852,7 +894,7 @@ elif selected_module == "Reportes Avanzados":
         x=months,
         y=projected_revenue,
         mode='lines+markers',
-        name='Proyección',
+        name='Proyección 2023',
         line=dict(color='#28a745', width=3, dash='dot'),
         marker=dict(size=8, color='#28a745')
     ))
@@ -865,21 +907,90 @@ elif selected_module == "Reportes Avanzados":
         x=historical_months,
         y=historical_revenue,
         mode='lines+markers',
-        name='Histórico',
+        name='Histórico 2023',
         line=dict(color='#003DA5', width=3),
         marker=dict(size=8, color='#003DA5')
     ))
     
+    # Proyección 2024
+    months_2024 = ['Ene 24', 'Feb 24', 'Mar 24', 'Abr 24', 'May 24', 'Jun 24']
+    projected_2024 = [3900000, 4050000, 4200000, 4350000, 4500000, 4650000]
+    
+    fig_projection.add_trace(go.Scatter(
+        x=months_2024,
+        y=projected_2024,
+        mode='lines+markers',
+        name='Proyección 2024',
+        line=dict(color='#FF6B35', width=3, dash='dot'),
+        marker=dict(size=8, color='#FF6B35')
+    ))
+    
     fig_projection.update_layout(
-        title="📊 Proyección de Ingresos 2023",
+        title="📊 Proyección de Ingresos 2023-2024",
         xaxis_title="Mes",
         yaxis_title="Ingresos (S/)",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        hovermode='x unified',
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    
+    st.plotly_chart(fig_projection, use_container_width=True)
+    
+    # Análisis de tendencias por año
+    st.subheader("📅 Análisis de Tendencia Anual")
+    
+    # Datos simulados por año
+    yearly_data = pd.DataFrame({
+        'Año': [2020, 2021, 2022, 2023],
+        'Ingresos': [18500000, 21500000, 24500000, 28500000],
+        'Clientes': [45, 62, 75, 89],
+        'Proyectos': [120, 145, 168, 195]
+    })
+    
+    fig_yearly = go.Figure()
+    
+    fig_yearly.add_trace(go.Bar(
+        x=yearly_data['Año'],
+        y=yearly_data['Ingresos'],
+        name='Ingresos',
+        marker_color='#003DA5',
+        hovertemplate='Año: %{x}<br>Ingresos: S/ %{y:,.0f}<extra></extra>'
+    ))
+    
+    fig_yearly.add_trace(go.Scatter(
+        x=yearly_data['Año'],
+        y=yearly_data['Clientes'],
+        name='Clientes',
+        mode='lines+markers',
+        yaxis='y2',
+        line=dict(color='#FFCC00', width=3),
+        marker=dict(size=8, color='#FFCC00'),
+        hovertemplate='Año: %{x}<br>Clientes: %{y}<extra></extra>'
+    ))
+    
+    fig_yearly.update_layout(
+        title="📈 Evolución Anual - Ingresos y Clientes",
+        xaxis_title="Año",
+        yaxis=dict(
+            title="Ingresos (S/)",
+            titlefont=dict(color="#003DA5"),
+            tickfont=dict(color="#003DA5")
+        ),
+        yaxis2=dict(
+            title="Número de Clientes",
+            titlefont=dict(color="#FFCC00"),
+            tickfont=dict(color="#FFCC00"),
+            anchor="x",
+            overlaying="y",
+            side="right"
+        ),
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
         hovermode='x unified'
     )
     
-    st.plotly_chart(fig_projection, use_container_width=True)
+    st.plotly_chart(fig_yearly, use_container_width=True)
 
 # Footer
 st.markdown("---")
