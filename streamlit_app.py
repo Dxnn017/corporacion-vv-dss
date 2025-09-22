@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
+import numpy as np
 
 # Configuración de la página
 st.set_page_config(
@@ -12,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Datos simulados para el DSS
+# Cargar datos (en una implementación real, conectarías a una base de datos)
 @st.cache_data
 def load_kpi_data():
     return {
@@ -27,7 +28,7 @@ def load_kpi_data():
 
 @st.cache_data
 def load_projects_data():
-    return [
+    return pd.DataFrame([
         {
             "id": "P001",
             "name": "Automatización Planta ABB",
@@ -37,7 +38,9 @@ def load_projects_data():
             "budget": 450000,
             "spent": 337500,
             "area": "Automatización",
-            "location": "Lima Norte"
+            "location": "Lima Norte",
+            "start_date": "2023-01-15",
+            "end_date": "2023-06-30"
         },
         {
             "id": "P002",
@@ -48,7 +51,9 @@ def load_projects_data():
             "budget": 280000,
             "spent": 275000,
             "area": "Mantenimiento",
-            "location": "Callao"
+            "location": "Callao",
+            "start_date": "2023-02-01",
+            "end_date": "2023-03-15"
         },
         {
             "id": "P003",
@@ -59,7 +64,9 @@ def load_projects_data():
             "budget": 320000,
             "spent": 144000,
             "area": "Electricidad",
-            "location": "San Juan de Lurigancho"
+            "location": "San Juan de Lurigancho",
+            "start_date": "2023-03-10",
+            "end_date": "2023-08-20"
         },
         {
             "id": "P004",
@@ -70,20 +77,36 @@ def load_projects_data():
             "budget": 280000,
             "spent": 275000,
             "area": "Refrigeración",
-            "location": "Ate"
+            "location": "Ate",
+            "start_date": "2023-01-20",
+            "end_date": "2023-04-10"
+        },
+        {
+            "id": "P005",
+            "name": "Obras Civiles Planta Nuevo",
+            "client": "Nueco",
+            "status": "Pendiente",
+            "progress": 0,
+            "budget": 520000,
+            "spent": 0,
+            "area": "Obras Civiles",
+            "location": "Lima Este",
+            "start_date": "2023-06-01",
+            "end_date": "2023-12-15"
         }
-    ]
+    ])
 
 @st.cache_data
 def load_clients_data():
-    return [
+    return pd.DataFrame([
         {
             "name": "ABB",
             "tier": "Premium",
             "revenue": 850000,
             "projects": 8,
             "satisfaction": 96,
-            "riskLevel": "Bajo"
+            "riskLevel": "Bajo",
+            "since": "2020-03-15"
         },
         {
             "name": "Siemens",
@@ -91,7 +114,8 @@ def load_clients_data():
             "revenue": 720000,
             "projects": 6,
             "satisfaction": 94,
-            "riskLevel": "Bajo"
+            "riskLevel": "Bajo",
+            "since": "2019-11-20"
         },
         {
             "name": "Schneider Electric",
@@ -99,7 +123,8 @@ def load_clients_data():
             "revenue": 580000,
             "projects": 5,
             "satisfaction": 92,
-            "riskLevel": "Bajo"
+            "riskLevel": "Bajo",
+            "since": "2021-02-10"
         },
         {
             "name": "Hyundai",
@@ -107,20 +132,31 @@ def load_clients_data():
             "revenue": 420000,
             "projects": 4,
             "satisfaction": 89,
-            "riskLevel": "Medio"
+            "riskLevel": "Medio",
+            "since": "2021-07-22"
+        },
+        {
+            "name": "Nueco",
+            "tier": "Standard",
+            "revenue": 280000,
+            "projects": 2,
+            "satisfaction": 85,
+            "riskLevel": "Medio",
+            "since": "2022-05-30"
         }
-    ]
+    ])
 
 @st.cache_data
 def load_service_areas_data():
-    return [
+    return pd.DataFrame([
         {
             "area": "Metal Mecánica",
             "revenue": 980000,
             "projects": 8,
             "efficiency": 92,
             "growth": 15.2,
-            "team_size": 12
+            "team_size": 12,
+            "cost": 420000
         },
         {
             "area": "Electricidad",
@@ -128,7 +164,8 @@ def load_service_areas_data():
             "projects": 7,
             "efficiency": 89,
             "growth": 18.7,
-            "team_size": 10
+            "team_size": 10,
+            "cost": 380000
         },
         {
             "area": "Automatización",
@@ -136,7 +173,8 @@ def load_service_areas_data():
             "projects": 6,
             "efficiency": 88,
             "growth": 22.1,
-            "team_size": 8
+            "team_size": 8,
+            "cost": 320000
         },
         {
             "area": "Refrigeración",
@@ -144,7 +182,8 @@ def load_service_areas_data():
             "projects": 5,
             "efficiency": 85,
             "growth": 8.3,
-            "team_size": 6
+            "team_size": 6,
+            "cost": 280000
         },
         {
             "area": "Mantenimiento",
@@ -152,7 +191,8 @@ def load_service_areas_data():
             "projects": 10,
             "efficiency": 91,
             "growth": 12.5,
-            "team_size": 15
+            "team_size": 15,
+            "cost": 350000
         },
         {
             "area": "Obras Civiles",
@@ -160,13 +200,22 @@ def load_service_areas_data():
             "projects": 4,
             "efficiency": 83,
             "growth": 5.8,
-            "team_size": 18
+            "team_size": 18,
+            "cost": 410000
         }
-    ]
+    ])
 
 # Sidebar
-st.sidebar.image("https://via.placeholder.com/200x80/003DA5/FFFFFF?text=V%26V+Corp", width=200)
-st.sidebar.title("🏢 V&V Corporación Comercial S.A.C")
+st.sidebar.markdown(
+    """
+    <div style="text-align: center; padding: 10px; background-color: #003DA5; border-radius: 10px; margin-bottom: 20px;">
+        <h2 style="color: white; margin: 0;">🏢 V&V Corporación</h2>
+        <p style="color: #FFCC00; margin: 0;">Comercial S.A.C</p>
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
+
 st.sidebar.markdown("---")
 
 # Selector de módulos
@@ -174,6 +223,18 @@ st.sidebar.subheader("📊 Módulos de Análisis")
 selected_module = st.sidebar.selectbox(
     "Seleccionar módulo:",
     ["Dashboard Principal", "Análisis de Proyectos", "Análisis de Clientes", "Áreas de Servicio", "Reportes Avanzados"]
+)
+
+# Filtros globales (si es necesario)
+st.sidebar.markdown("---")
+st.sidebar.subheader("🔍 Filtros Globales")
+
+# Filtro de fecha (si tus datos tienen timestamps)
+date_range = st.sidebar.date_input(
+    "Rango de Fechas",
+    value=[datetime(2023, 1, 1), datetime(2023, 6, 30)],
+    min_value=datetime(2022, 1, 1),
+    max_value=datetime(2023, 12, 31)
 )
 
 # Header principal
@@ -199,37 +260,37 @@ if selected_module == "Dashboard Principal":
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div style="background: linear-gradient(135deg, #28a745, #20c997); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <h3 style="margin: 0; font-size: 1.2rem;">💰 Ingresos Mensuales</h3>
-            <h2 style="margin: 0.5rem 0; font-size: 2rem;">S/ 2,850,000</h2>
-            <p style="margin: 0; color: #d4edda;">+12.3% ↗️</p>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">S/ {kpis['revenue']:,.0f}</h2>
+            <p style="margin: 0; color: #d4edda;">+{kpis['monthlyGrowth']}% ↗️</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div style="background: linear-gradient(135deg, #007bff, #0056b3); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <h3 style="margin: 0; font-size: 1.2rem;">📁 Proyectos Activos</h3>
-            <h2 style="margin: 0.5rem 0; font-size: 2rem;">24</h2>
-            <p style="margin: 0; color: #cce7ff;">+2 nuevos ↗️</p>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">{kpis['activeProjects']}</h2>
+            <p style="margin: 0; color: #cce7ff;">+{kpis['newClients']} nuevos ↗️</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
-        st.markdown("""
+        st.markdown(f"""
         <div style="background: linear-gradient(135deg, #ffc107, #e0a800); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <h3 style="margin: 0; font-size: 1.2rem;">😊 Satisfacción Cliente</h3>
-            <h2 style="margin: 0.5rem 0; font-size: 2rem;">94.2%</h2>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">{kpis['clientSatisfaction']}%</h2>
             <p style="margin: 0; color: #fff3cd;">+1.2% ↗️</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
-        st.markdown("""
+        st.markdown(f"""
         <div style="background: linear-gradient(135deg, #dc3545, #c82333); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <h3 style="margin: 0; font-size: 1.2rem;">⚡ Eficiencia Operativa</h3>
-            <h2 style="margin: 0.5rem 0; font-size: 2rem;">87.5%</h2>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">{kpis['efficiency']}%</h2>
             <p style="margin: 0; color: #f8d7da;">+3.5% ↗️</p>
         </div>
         """, unsafe_allow_html=True)
@@ -242,10 +303,9 @@ if selected_module == "Dashboard Principal":
     with col1:
         # Ingresos por área de servicio
         areas_data = load_service_areas_data()
-        df_areas = pd.DataFrame(areas_data)
         
         fig_pie = px.pie(
-            df_areas, 
+            areas_data, 
             values='revenue', 
             names='area',
             title="📊 Distribución de Ingresos por Área de Servicio",
@@ -271,13 +331,14 @@ if selected_module == "Dashboard Principal":
         monthly_data = pd.DataFrame({
             'Mes': ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
             'Ingresos': [2200000, 2350000, 2180000, 2450000, 2680000, 2850000],
-            'Proyectos': [18, 20, 19, 22, 25, 24]
+            'Proyectos': [18, 20, 19, 22, 25, 24],
+            'Clientes': [75, 78, 80, 82, 85, 89]
         })
         
-        fig_line = go.Figure()
+        fig = go.Figure()
         
         # Add area chart for revenue
-        fig_line.add_trace(go.Scatter(
+        fig.add_trace(go.Scatter(
             x=monthly_data['Mes'],
             y=monthly_data['Ingresos'],
             mode='lines+markers',
@@ -286,24 +347,48 @@ if selected_module == "Dashboard Principal":
             marker=dict(size=8, color='#FFCC00', line=dict(width=2, color='#003DA5')),
             fill='tonexty',
             fillcolor='rgba(0, 61, 165, 0.1)',
-            hovertemplate='<b>%{x}</b><br>Ingresos: S/ %{y:,.0f}<extra></extra>'
+            hovertemplate='<b>%{x}</b><br>Ingresos: S/ %{y:,.0f}<extra></extra>',
+            yaxis='y'
         ))
         
-        fig_line.update_layout(
-            title="📈 Evolución de Ingresos Mensuales",
+        # Add bar chart for projects (secondary axis)
+        fig.add_trace(go.Bar(
+            x=monthly_data['Mes'],
+            y=monthly_data['Proyectos'],
+            name='Proyectos',
+            marker_color='#28a745',
+            opacity=0.6,
+            hovertemplate='<b>%{x}</b><br>Proyectos: %{y}<extra></extra>',
+            yaxis='y2'
+        ))
+        
+        fig.update_layout(
+            title="📈 Evolución Mensual - Ingresos y Proyectos",
             xaxis_title="Mes",
-            yaxis_title="Ingresos (S/)",
+            yaxis=dict(
+                title="Ingresos (S/)",
+                titlefont=dict(color="#003DA5"),
+                tickfont=dict(color="#003DA5")
+            ),
+            yaxis2=dict(
+                title="Proyectos",
+                titlefont=dict(color="#28a745"),
+                tickfont=dict(color="#28a745"),
+                anchor="x",
+                overlaying="y",
+                side="right"
+            ),
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
             hovermode='x unified',
-            showlegend=False
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
         
         # Add grid
-        fig_line.update_xaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
-        fig_line.update_yaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        fig.update_xaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        fig.update_yaxis(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
         
-        st.plotly_chart(fig_line, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
     
     # Métricas Adicionales
     st.markdown("### 📊 Métricas Adicionales")
@@ -312,7 +397,7 @@ if selected_module == "Dashboard Principal":
     with col1:
         # Project completion rate
         projects = load_projects_data()
-        completed = len([p for p in projects if p['status'] == 'Completado'])
+        completed = len(projects[projects['status'] == 'Completado'])
         completion_rate = (completed / len(projects)) * 100
         
         fig_gauge = go.Figure(go.Indicator(
@@ -337,8 +422,7 @@ if selected_module == "Dashboard Principal":
     with col2:
         # Client distribution by tier
         clients = load_clients_data()
-        df_clients = pd.DataFrame(clients)
-        tier_counts = df_clients['tier'].value_counts()
+        tier_counts = clients['tier'].value_counts()
         
         fig_donut = px.pie(
             values=tier_counts.values,
@@ -356,10 +440,10 @@ if selected_module == "Dashboard Principal":
     
     with col3:
         # Team efficiency by area
-        df_areas['efficiency_score'] = df_areas['efficiency']
+        areas_data['efficiency_score'] = areas_data['efficiency']
         
         fig_bar_eff = px.bar(
-            df_areas.sort_values('efficiency', ascending=True),
+            areas_data.sort_values('efficiency', ascending=True),
             x='efficiency',
             y='area',
             orientation='h',
@@ -377,25 +461,38 @@ elif selected_module == "Análisis de Proyectos":
     st.header("🏗️ Análisis Detallado de Proyectos")
     
     projects = load_projects_data()
-    df_projects = pd.DataFrame(projects)
     
     # Filtros
     col1, col2, col3 = st.columns(3)
     with col1:
-        status_filter = st.selectbox("Estado:", ["Todos"] + list(df_projects['status'].unique()))
+        status_filter = st.selectbox("Estado:", ["Todos"] + list(projects['status'].unique()))
     with col2:
-        area_filter = st.selectbox("Área:", ["Todas"] + list(df_projects['area'].unique()))
+        area_filter = st.selectbox("Área:", ["Todas"] + list(projects['area'].unique()))
     with col3:
-        client_filter = st.selectbox("Cliente:", ["Todos"] + list(df_projects['client'].unique()))
+        client_filter = st.selectbox("Cliente:", ["Todos"] + list(projects['client'].unique()))
     
     # Aplicar filtros
-    filtered_df = df_projects.copy()
+    filtered_df = projects.copy()
     if status_filter != "Todos":
         filtered_df = filtered_df[filtered_df['status'] == status_filter]
     if area_filter != "Todas":
         filtered_df = filtered_df[filtered_df['area'] == area_filter]
     if client_filter != "Todos":
         filtered_df = filtered_df[filtered_df['client'] == client_filter]
+    
+    # Métricas rápidas
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Proyectos", len(filtered_df))
+    with col2:
+        total_budget = filtered_df['budget'].sum()
+        st.metric("Presupuesto Total", f"S/ {total_budget:,.0f}")
+    with col3:
+        total_spent = filtered_df['spent'].sum()
+        st.metric("Total Gastado", f"S/ {total_spent:,.0f}")
+    with col4:
+        avg_progress = filtered_df['progress'].mean()
+        st.metric("Progreso Promedio", f"{avg_progress:.1f}%")
     
     # Gráficos
     col1, col2 = st.columns(2)
@@ -457,29 +554,58 @@ elif selected_module == "Análisis de Proyectos":
     
     # Tabla detallada
     st.subheader("📋 Detalles de Proyectos")
-    st.dataframe(filtered_df, use_container_width=True)
+    
+    # Formatear columnas monetarias para mejor visualización
+    display_df = filtered_df.copy()
+    display_df['budget'] = display_df['budget'].apply(lambda x: f"S/ {x:,.0f}")
+    display_df['spent'] = display_df['spent'].apply(lambda x: f"S/ {x:,.0f}")
+    display_df['progress'] = display_df['progress'].apply(lambda x: f"{x}%")
+    
+    st.dataframe(display_df, use_container_width=True)
+    
+    # Opción para descargar datos
+    csv = filtered_df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Descargar datos como CSV",
+        data=csv,
+        file_name="proyectos_vv_corporacion.csv",
+        mime="text/csv",
+    )
 
 # Análisis de Clientes
 elif selected_module == "Análisis de Clientes":
     st.header("👥 Análisis de Clientes")
     
     clients = load_clients_data()
-    df_clients = pd.DataFrame(clients)
     
     # Métricas de clientes
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("👥 Total Clientes", len(df_clients))
+        st.metric("👥 Total Clientes", len(clients))
     with col2:
-        premium_clients = len(df_clients[df_clients['tier'] == 'Premium'])
+        premium_clients = len(clients[clients['tier'] == 'Premium'])
         st.metric("⭐ Clientes Premium", premium_clients)
     with col3:
-        avg_satisfaction = df_clients['satisfaction'].mean()
+        avg_satisfaction = clients['satisfaction'].mean()
         st.metric("😊 Satisfacción Promedio", f"{avg_satisfaction:.1f}%")
     with col4:
-        total_revenue = df_clients['revenue'].sum()
+        total_revenue = clients['revenue'].sum()
         st.metric("💰 Ingresos Totales", f"S/ {total_revenue:,.0f}")
+    
+    # Filtros
+    col1, col2 = st.columns(2)
+    with col1:
+        tier_filter = st.selectbox("Categoría:", ["Todas"] + list(clients['tier'].unique()))
+    with col2:
+        risk_filter = st.selectbox("Nivel de Riesgo:", ["Todos"] + list(clients['riskLevel'].unique()))
+    
+    # Aplicar filtros
+    filtered_clients = clients.copy()
+    if tier_filter != "Todas":
+        filtered_clients = filtered_clients[filtered_clients['tier'] == tier_filter]
+    if risk_filter != "Todos":
+        filtered_clients = filtered_clients[filtered_clients['riskLevel'] == risk_filter]
     
     # Gráficos de análisis
     col1, col2 = st.columns(2)
@@ -487,7 +613,7 @@ elif selected_module == "Análisis de Clientes":
     with col1:
         # Ingresos por cliente
         fig_bar = px.bar(
-            df_clients.sort_values('revenue', ascending=True),
+            filtered_clients.sort_values('revenue', ascending=True),
             x='revenue',
             y='name',
             orientation='h',
@@ -504,7 +630,7 @@ elif selected_module == "Análisis de Clientes":
     with col2:
         # Satisfacción vs Proyectos
         fig_scatter = px.scatter(
-            df_clients,
+            filtered_clients,
             x='projects',
             y='satisfaction',
             size='revenue',
@@ -517,14 +643,28 @@ elif selected_module == "Análisis de Clientes":
     
     # Tabla de clientes
     st.subheader("📋 Cartera de Clientes")
-    st.dataframe(df_clients, use_container_width=True)
+    
+    # Formatear columnas para mejor visualización
+    display_clients = filtered_clients.copy()
+    display_clients['revenue'] = display_clients['revenue'].apply(lambda x: f"S/ {x:,.0f}")
+    display_clients['satisfaction'] = display_clients['satisfaction'].apply(lambda x: f"{x}%")
+    
+    st.dataframe(display_clients, use_container_width=True)
+    
+    # Opción para descargar datos
+    csv = filtered_clients.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Descargar datos como CSV",
+        data=csv,
+        file_name="clientes_vv_corporacion.csv",
+        mime="text/csv",
+    )
 
 # Áreas de Servicio
 elif selected_module == "Áreas de Servicio":
     st.header("⚙️ Rendimiento por Áreas de Servicio")
     
     areas_data = load_service_areas_data()
-    df_areas = pd.DataFrame(areas_data)
     
     # Métricas por área
     col1, col2 = st.columns(2)
@@ -535,8 +675,8 @@ elif selected_module == "Áreas de Servicio":
         
         fig_bar.add_trace(go.Bar(
             name='Ingresos (Miles S/)',
-            x=df_areas['area'],
-            y=df_areas['revenue'] / 1000,
+            x=areas_data['area'],
+            y=areas_data['revenue'] / 1000,
             yaxis='y',
             offsetgroup=1,
             marker_color='#003DA5'
@@ -544,8 +684,8 @@ elif selected_module == "Áreas de Servicio":
         
         fig_bar.add_trace(go.Bar(
             name='Eficiencia (%)',
-            x=df_areas['area'],
-            y=df_areas['efficiency'],
+            x=areas_data['area'],
+            y=areas_data['efficiency'],
             yaxis='y2',
             offsetgroup=2,
             marker_color='#FFCC00'
@@ -564,7 +704,7 @@ elif selected_module == "Áreas de Servicio":
     with col2:
         # Crecimiento por área
         fig_growth = px.bar(
-            df_areas.sort_values('growth', ascending=True),
+            areas_data.sort_values('growth', ascending=True),
             x='growth',
             y='area',
             orientation='h',
@@ -577,18 +717,22 @@ elif selected_module == "Áreas de Servicio":
     # Análisis detallado
     st.subheader("📊 Análisis Multidimensional")
     
+    # Calcular ROI
+    areas_data['roi'] = (areas_data['revenue'] - areas_data['cost']) / areas_data['cost'] * 100
+    
     fig_bubble = px.scatter(
-        df_areas,
+        areas_data,
         x='projects',
         y='efficiency',
         size='revenue',
-        color='growth',
+        color='roi',
         hover_name='area',
-        title="🎯 Proyectos vs Eficiencia (Tamaño = Ingresos, Color = Crecimiento)",
+        title="🎯 Proyectos vs Eficiencia (Tamaño = Ingresos, Color = ROI)",
         labels={
             'projects': 'Número de Proyectos',
             'efficiency': 'Eficiencia (%)',
-            'growth': 'Crecimiento (%)'
+            'roi': 'ROI (%)',
+            'revenue': 'Ingresos'
         },
         color_continuous_scale='RdYlGn'
     )
@@ -596,7 +740,25 @@ elif selected_module == "Áreas de Servicio":
     
     # Tabla detallada
     st.subheader("📋 Detalles por Área de Servicio")
-    st.dataframe(df_areas, use_container_width=True)
+    
+    # Formatear columnas para mejor visualización
+    display_areas = areas_data.copy()
+    display_areas['revenue'] = display_areas['revenue'].apply(lambda x: f"S/ {x:,.0f}")
+    display_areas['cost'] = display_areas['cost'].apply(lambda x: f"S/ {x:,.0f}")
+    display_areas['efficiency'] = display_areas['efficiency'].apply(lambda x: f"{x}%")
+    display_areas['growth'] = display_areas['growth'].apply(lambda x: f"{x}%")
+    display_areas['roi'] = display_areas['roi'].apply(lambda x: f"{x:.1f}%")
+    
+    st.dataframe(display_areas, use_container_width=True)
+    
+    # Opción para descargar datos
+    csv = areas_data.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Descargar datos como CSV",
+        data=csv,
+        file_name="areas_servicio_vv_corporacion.csv",
+        mime="text/csv",
+    )
 
 # Reportes Avanzados
 elif selected_module == "Reportes Avanzados":
@@ -616,8 +778,7 @@ elif selected_module == "Reportes Avanzados":
     
     with col1:
         # Rendimiento por cliente vs área
-        df_projects = pd.DataFrame(projects)
-        client_area_summary = df_projects.groupby(['client', 'area']).agg({
+        client_area_summary = projects.groupby(['client', 'area']).agg({
             'budget': 'sum',
             'spent': 'sum',
             'progress': 'mean'
@@ -628,17 +789,17 @@ elif selected_module == "Reportes Avanzados":
             x='area',
             y='client',
             z='progress',
-            title="🎯 Mapa de Calor: Progreso por Cliente y Área"
+            title="🎯 Mapa de Calor: Progreso por Cliente y Área",
+            color_continuous_scale='Viridis'
         )
         st.plotly_chart(fig_heatmap, use_container_width=True)
     
     with col2:
         # Análisis de rentabilidad
-        df_areas = pd.DataFrame(areas)
-        df_areas['roi'] = (df_areas['revenue'] / df_areas['team_size']) / 1000
+        areas['roi'] = (areas['revenue'] / areas['team_size']) / 1000
         
         fig_roi = px.bar(
-            df_areas.sort_values('roi', ascending=True),
+            areas.sort_values('roi', ascending=True),
             x='roi',
             y='area',
             orientation='h',
@@ -662,7 +823,7 @@ elif selected_module == "Reportes Avanzados":
         """)
     
     with col2:
-        best_area = max(areas, key=lambda x: x['growth'])
+        best_area = areas.loc[areas['growth'].idxmax()]
         st.success(f"""
         **🚀 Área de Mayor Crecimiento**
         - {best_area['area']}: +{best_area['growth']:.1f}%
@@ -671,13 +832,54 @@ elif selected_module == "Reportes Avanzados":
         """)
     
     with col3:
-        best_client = max(clients, key=lambda x: x['revenue'])
+        best_client = clients.loc[clients['revenue'].idxmax()]
         st.warning(f"""
         **⭐ Cliente Principal**
         - {best_client['name']} ({best_client['tier']})
         - Ingresos: S/ {best_client['revenue']:,.0f}
         - Satisfacción: {best_client['satisfaction']}%
         """)
+    
+    # Análisis predictivo simple (simulado)
+    st.subheader("🔮 Proyecciones Futuras")
+    
+    # Simular datos de proyección
+    months = ['Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    projected_revenue = [3000000, 3150000, 3300000, 3450000, 3600000, 3750000]
+    
+    fig_projection = go.Figure()
+    fig_projection.add_trace(go.Scatter(
+        x=months,
+        y=projected_revenue,
+        mode='lines+markers',
+        name='Proyección',
+        line=dict(color='#28a745', width=3, dash='dot'),
+        marker=dict(size=8, color='#28a745')
+    ))
+    
+    # Añadir datos históricos
+    historical_months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun']
+    historical_revenue = [2200000, 2350000, 2180000, 2450000, 2680000, 2850000]
+    
+    fig_projection.add_trace(go.Scatter(
+        x=historical_months,
+        y=historical_revenue,
+        mode='lines+markers',
+        name='Histórico',
+        line=dict(color='#003DA5', width=3),
+        marker=dict(size=8, color='#003DA5')
+    ))
+    
+    fig_projection.update_layout(
+        title="📊 Proyección de Ingresos 2023",
+        xaxis_title="Mes",
+        yaxis_title="Ingresos (S/)",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        hovermode='x unified'
+    )
+    
+    st.plotly_chart(fig_projection, use_container_width=True)
 
 # Footer
 st.markdown("---")
@@ -685,5 +887,6 @@ st.markdown("""
 <div style="text-align: center; color: #666; padding: 1rem;">
     <p>V&V Corporación Comercial S.A.C - Sistema Integrado de Análisis</p>
     <p>📞 972 257 767 | 📍 Calle Manuel Ubalde N° 1125 - A. PJ. El Porvenir</p>
+    <p>© 2023 - Todos los derechos reservados</p>
 </div>
 """, unsafe_allow_html=True)
