@@ -796,7 +796,7 @@ st.markdown("---")
 st.markdown(
     """
     <div style="text-align: center; padding: 1rem; background-color: #f8f9fa; border-radius: 10px; margin-top: 2rem;">
-        <p style="margin: 0; color: #6c757d;">© 2023 V&V Corporación Comercial S.A.C - Sistema de Soporte a Decisiones</p>
+        <p style="margin: 0; color: #6c757d;">© 2025 V&V Corporación Comercial S.A.C - Sistema de Soporte a Decisiones</p>
         <p style="margin: 0; color: #6c757d; font-size: 0.9rem;">Desarrollado con Streamlit | Datos actualizados en tiempo real</p>
     </div>
     """, 
