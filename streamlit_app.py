@@ -659,9 +659,10 @@ elif selected_module == "Reportes Avanzados":
             fig_yearly.add_trace(go.Bar(
                 x=yearly_data['Año'],
                 y=yearly_data['Ingresos'],
-                name='Ingresos',
+                name='Ingresos (S/)',
                 marker_color='#003DA5',
-                hovertemplate='Año: %{x}<br>Ingresos: S/ %{y:,.0f}<extra></extra>'
+                hovertemplate='<b>Año: %{x}</b><br>Ingresos: S/ %{y:,.0f}<extra></extra>',
+                yaxis='y'
             ))
             
             fig_yearly.add_trace(go.Scatter(
@@ -669,39 +670,60 @@ elif selected_module == "Reportes Avanzados":
                 y=yearly_data['Clientes'],
                 mode='lines+markers',
                 name='Clientes',
-                yaxis='y2',
-                line=dict(color='#FFCC00', width=3),
-                marker=dict(size=10),
-                hovertemplate='Año: %{x}<br>Clientes: %{y}<extra></extra>'
+                line=dict(color='#FFCC00', width=4),
+                marker=dict(size=12, color='#FFCC00', line=dict(width=2, color='#003DA5')),
+                hovertemplate='<b>Año: %{x}</b><br>Clientes: %{y}<extra></extra>',
+                yaxis='y2'
             ))
             
             fig_yearly.update_layout(
-                title="📈 Evolución Anual - Ingresos y Clientes",
-                xaxis_title="Año",
-                yaxis=dict(
-                    title="Ingresos (S/)",
-                    titlefont=dict(color="#003DA5"),
-                    tickfont=dict(color="#003DA5")
-                ),
-                yaxis2=dict(
-                    title="Número de Clientes",
-                    titlefont=dict(color="#FFCC00"),
-                    tickfont=dict(color="#FFCC00"),
-                    anchor="x",
-                    overlaying="y",
-                    side="right"
-                ),
-                legend=dict(x=0.01, y=0.99),
+                title={
+                    'text': "📈 Evolución Anual - Ingresos y Clientes",
+                    'x': 0.5,
+                    'xanchor': 'center',
+                    'font': {'size': 18}
+                },
+                xaxis={
+                    'title': "Año",
+                    'tickmode': 'linear',
+                    'tick0': 2020,
+                    'dtick': 1
+                },
+                yaxis={
+                    'title': "Ingresos (S/)",
+                    'titlefont': {'color': "#003DA5"},
+                    'tickfont': {'color': "#003DA5"},
+                    'tickformat': ',.0f',
+                    'side': 'left'
+                },
+                yaxis2={
+                    'title': "Número de Clientes",
+                    'titlefont': {'color': "#FFCC00"},
+                    'tickfont': {'color': "#FFCC00"},
+                    'overlaying': 'y',
+                    'side': 'right',
+                    'showgrid': False
+                },
+                legend={
+                    'x': 0.02,
+                    'y': 0.98,
+                    'bgcolor': 'rgba(255,255,255,0.8)',
+                    'bordercolor': 'rgba(0,0,0,0.2)',
+                    'borderwidth': 1
+                },
                 hovermode='x unified',
-                font=dict(size=12)
+                font={'size': 12},
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                margin={'t': 60, 'b': 50, 'l': 80, 'r': 80}
             )
             
             st.plotly_chart(fig_yearly, use_container_width=True)
             
         except Exception as e:
-            st.error(f"Error creando gráfico anual: {e}")
-            st.info("Mostrando datos en formato tabla:")
-            st.dataframe(yearly_data)
+            st.error(f"Error creando gráfico anual: {str(e)}")
+            st.info("Mostrando datos en formato tabla como alternativa:")
+            st.dataframe(yearly_data, use_container_width=True)
         
         # Proyección futura
         st.subheader("🔮 Proyección de Crecimiento")
@@ -712,36 +734,51 @@ elif selected_module == "Reportes Avanzados":
             'Clientes_Proyectados': [105, 125, 150]
         })
         
-        fig_projection = go.Figure()
-        
-        # Datos históricos
-        fig_projection.add_trace(go.Scatter(
-            x=yearly_data['Año'],
-            y=yearly_data['Ingresos'],
-            mode='lines+markers',
-            name='Ingresos Históricos',
-            line=dict(color='#003DA5', width=3),
-            marker=dict(size=8)
-        ))
-        
-        # Proyecciones
-        fig_projection.add_trace(go.Scatter(
-            x=projection_data['Año'],
-            y=projection_data['Ingresos_Proyectados'],
-            mode='lines+markers',
-            name='Ingresos Proyectados',
-            line=dict(color='#FFCC00', width=3, dash='dash'),
-            marker=dict(size=8)
-        ))
-        
-        fig_projection.update_layout(
-            title="🚀 Proyección de Ingresos 2024-2026",
-            xaxis_title="Año",
-            yaxis_title="Ingresos (S/)",
-            hovermode='x unified'
-        )
-        
-        st.plotly_chart(fig_projection, use_container_width=True)
+        try:
+            fig_projection = go.Figure()
+            
+            # Datos históricos
+            fig_projection.add_trace(go.Scatter(
+                x=yearly_data['Año'],
+                y=yearly_data['Ingresos'],
+                mode='lines+markers',
+                name='Ingresos Históricos',
+                line=dict(color='#003DA5', width=3),
+                marker=dict(size=10),
+                hovertemplate='<b>Año: %{x}</b><br>Ingresos: S/ %{y:,.0f}<extra></extra>'
+            ))
+            
+            # Proyecciones
+            fig_projection.add_trace(go.Scatter(
+                x=projection_data['Año'],
+                y=projection_data['Ingresos_Proyectados'],
+                mode='lines+markers',
+                name='Ingresos Proyectados',
+                line=dict(color='#FFCC00', width=3, dash='dash'),
+                marker=dict(size=10),
+                hovertemplate='<b>Año: %{x}</b><br>Proyección: S/ %{y:,.0f}<extra></extra>'
+            ))
+            
+            fig_projection.update_layout(
+                title={
+                    'text': "🚀 Proyección de Ingresos 2024-2026",
+                    'x': 0.5,
+                    'xanchor': 'center'
+                },
+                xaxis_title="Año",
+                yaxis_title="Ingresos (S/)",
+                yaxis=dict(tickformat=',.0f'),
+                hovermode='x unified',
+                font=dict(size=12),
+                plot_bgcolor='white'
+            )
+            
+            st.plotly_chart(fig_projection, use_container_width=True)
+            
+        except Exception as e:
+            st.error(f"Error creando gráfico de proyección: {str(e)}")
+            st.info("Mostrando datos de proyección en tabla:")
+            st.dataframe(projection_data, use_container_width=True)
         
         # Resumen ejecutivo
         st.subheader("📋 Resumen Ejecutivo")
@@ -767,7 +804,7 @@ elif selected_module == "Reportes Avanzados":
             """)
     
     except Exception as e:
-        st.error(f"Error en reportes avanzados: {e}")
+        st.error(f"Error en reportes avanzados: {str(e)}")
         st.info("Algunos módulos pueden no estar disponibles temporalmente")
 
 # Footer
