@@ -654,77 +654,61 @@ elif selected_module == "Reportes Avanzados":
         })
         
         try:
-            fig_yearly = go.Figure()
+            fig_yearly = px.area(
+                yearly_data,
+                x='Año',
+                y='Ingresos',
+                title="📈 Evolución de Ingresos Anuales",
+                color_discrete_sequence=['#003DA5']
+            )
             
-            fig_yearly.add_trace(go.Bar(
-                x=yearly_data['Año'],
-                y=yearly_data['Ingresos'],
-                name='Ingresos (S/)',
-                marker_color='#003DA5',
-                hovertemplate='<b>Año: %{x}</b><br>Ingresos: S/ %{y:,.0f}<extra></extra>',
-                yaxis='y'
-            ))
-            
-            fig_yearly.add_trace(go.Scatter(
-                x=yearly_data['Año'],
-                y=yearly_data['Clientes'],
-                mode='lines+markers',
-                name='Clientes',
-                line=dict(color='#FFCC00', width=4),
-                marker=dict(size=12, color='#FFCC00', line=dict(width=2, color='#003DA5')),
-                hovertemplate='<b>Año: %{x}</b><br>Clientes: %{y}<extra></extra>',
-                yaxis='y2'
-            ))
+            fig_yearly.update_traces(
+                fill='tonexty',
+                hovertemplate='<b>Año: %{x}</b><br>Ingresos: S/ %{y:,.0f}<extra></extra>'
+            )
             
             fig_yearly.update_layout(
-                title={
-                    'text': "📈 Evolución Anual - Ingresos y Clientes",
-                    'x': 0.5,
-                    'xanchor': 'center',
-                    'font': {'size': 18}
-                },
-                xaxis={
-                    'title': "Año",
-                    'tickmode': 'linear',
-                    'tick0': 2020,
-                    'dtick': 1
-                },
-                yaxis={
-                    'title': "Ingresos (S/)",
-                    'titlefont': {'color': "#003DA5"},
-                    'tickfont': {'color': "#003DA5"},
-                    'tickformat': ',.0f',
-                    'side': 'left'
-                },
-                yaxis2={
-                    'title': "Número de Clientes",
-                    'titlefont': {'color': "#FFCC00"},
-                    'tickfont': {'color': "#FFCC00"},
-                    'overlaying': 'y',
-                    'side': 'right',
-                    'showgrid': False
-                },
-                legend={
-                    'x': 0.02,
-                    'y': 0.98,
-                    'bgcolor': 'rgba(255,255,255,0.8)',
-                    'bordercolor': 'rgba(0,0,0,0.2)',
-                    'borderwidth': 1
-                },
+                xaxis_title="Año",
+                yaxis_title="Ingresos (S/)",
+                yaxis=dict(tickformat=',.0f'),
                 hovermode='x unified',
-                font={'size': 12},
+                font=dict(size=12),
                 plot_bgcolor='white',
-                paper_bgcolor='white',
-                margin={'t': 60, 'b': 50, 'l': 80, 'r': 80}
+                paper_bgcolor='white'
             )
             
             st.plotly_chart(fig_yearly, use_container_width=True)
             
+            fig_clients = px.line(
+                yearly_data,
+                x='Año',
+                y='Clientes',
+                title="👥 Evolución del Número de Clientes",
+                markers=True,
+                color_discrete_sequence=['#FFCC00']
+            )
+            
+            fig_clients.update_traces(
+                line=dict(width=4),
+                marker=dict(size=12, line=dict(width=2, color='#003DA5')),
+                hovertemplate='<b>Año: %{x}</b><br>Clientes: %{y}<extra></extra>'
+            )
+            
+            fig_clients.update_layout(
+                xaxis_title="Año",
+                yaxis_title="Número de Clientes",
+                hovermode='x unified',
+                font=dict(size=12),
+                plot_bgcolor='white'
+            )
+            
+            st.plotly_chart(fig_clients, use_container_width=True)
+            
         except Exception as e:
-            st.error(f"Error creando gráfico anual: {str(e)}")
+            st.error(f"Error creando gráficos anuales: {str(e)}")
             st.info("Mostrando datos en formato tabla como alternativa:")
             st.dataframe(yearly_data, use_container_width=True)
-        
+
         # Proyección futura
         st.subheader("🔮 Proyección de Crecimiento")
         
