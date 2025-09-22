@@ -18,9 +18,9 @@ except Exception as e:
 
 @st.cache_data
 def load_kpi_data():
-    """Load KPI data with error handling"""
+    """Load KPI data with enhanced error handling"""
     try:
-        return {
+        data = {
             "revenue": 2850000,
             "activeProjects": 24,
             "clientSatisfaction": 94.2,
@@ -29,13 +29,18 @@ def load_kpi_data():
             "clients": 89,
             "newClients": 12
         }
+        # Validate data types
+        for key, value in data.items():
+            if not isinstance(value, (int, float)):
+                raise ValueError(f"Invalid data type for {key}: {type(value)}")
+        return data
     except Exception as e:
         st.error(f"Error loading KPI data: {e}")
         return {}
 
 @st.cache_data
 def load_projects_data():
-    """Load projects data as DataFrame with error handling"""
+    """Load projects data as DataFrame with enhanced validation"""
     try:
         data = [
             {
@@ -104,7 +109,12 @@ def load_projects_data():
                 "end_date": "2023-06-15"
             }
         ]
-        return pd.DataFrame(data)
+        df = pd.DataFrame(data)
+        # Validate DataFrame structure
+        required_columns = ['id', 'name', 'client', 'status', 'progress', 'budget', 'spent', 'area']
+        if not all(col in df.columns for col in required_columns):
+            raise ValueError("Missing required columns in projects data")
+        return df
     except Exception as e:
         st.error(f"Error loading projects data: {e}")
         return pd.DataFrame()
@@ -221,9 +231,13 @@ try:
         help="Selecciona un rango de fechas para filtrar los datos"
     )
     
-    if len(selected_dates) == 2:
+    if isinstance(selected_dates, (list, tuple)) and len(selected_dates) == 2:
         start_date, end_date = selected_dates
-        st.sidebar.success(f"Período seleccionado: {start_date} - {end_date}")
+        if start_date <= end_date:
+            st.sidebar.success(f"Período seleccionado: {start_date} - {end_date}")
+        else:
+            st.sidebar.error("La fecha de inicio debe ser anterior a la fecha de fin")
+            start_date, end_date = default_start, default_end
     else:
         st.sidebar.warning("Por favor selecciona un rango de fechas completo")
         start_date, end_date = default_start, default_end
@@ -261,8 +275,8 @@ if selected_module == "Dashboard Principal":
         st.markdown(f"""
         <div style="background: linear-gradient(135deg, #28a745, #20c997); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <h3 style="margin: 0; font-size: 1.2rem;">💰 Ingresos Mensuales</h3>
-            <h2 style="margin: 0.5rem 0; font-size: 2rem;">S/ {kpis['revenue']:,.0f}</h2>
-            <p style="margin: 0; color: #d4edda;">+{kpis['monthlyGrowth']}% ↗️</p>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">S/ {kpis.get('revenue', 0):,.0f}</h2>
+            <p style="margin: 0; color: #d4edda;">+{kpis.get('monthlyGrowth', 0)}% ↗️</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -270,8 +284,8 @@ if selected_module == "Dashboard Principal":
         st.markdown(f"""
         <div style="background: linear-gradient(135deg, #007bff, #0056b3); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <h3 style="margin: 0; font-size: 1.2rem;">📁 Proyectos Activos</h3>
-            <h2 style="margin: 0.5rem 0; font-size: 2rem;">{kpis['activeProjects']}</h2>
-            <p style="margin: 0; color: #cce7ff;">+{kpis['newClients']} nuevos ↗️</p>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">{kpis.get('activeProjects', 0)}</h2>
+            <p style="margin: 0; color: #cce7ff;">+{kpis.get('newClients', 0)} nuevos ↗️</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -279,7 +293,7 @@ if selected_module == "Dashboard Principal":
         st.markdown(f"""
         <div style="background: linear-gradient(135deg, #ffc107, #e0a800); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <h3 style="margin: 0; font-size: 1.2rem;">😊 Satisfacción Cliente</h3>
-            <h2 style="margin: 0.5rem 0; font-size: 2rem;">{kpis['clientSatisfaction']}%</h2>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">{kpis.get('clientSatisfaction', 0)}%</h2>
             <p style="margin: 0; color: #fff3cd;">+1.2% ↗️</p>
         </div>
         """, unsafe_allow_html=True)
@@ -288,7 +302,7 @@ if selected_module == "Dashboard Principal":
         st.markdown(f"""
         <div style="background: linear-gradient(135deg, #dc3545, #c82333); padding: 1.5rem; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <h3 style="margin: 0; font-size: 1.2rem;">⚡ Eficiencia Operativa</h3>
-            <h2 style="margin: 0.5rem 0; font-size: 2rem;">{kpis['efficiency']}%</h2>
+            <h2 style="margin: 0.5rem 0; font-size: 2rem;">{kpis.get('efficiency', 0)}%</h2>
             <p style="margin: 0; color: #f8d7da;">+3.5% ↗️</p>
         </div>
         """, unsafe_allow_html=True)
@@ -317,21 +331,28 @@ if selected_module == "Dashboard Principal":
                 fig_pie.update_layout(
                     showlegend=True,
                     legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.05),
-                    margin=dict(t=50, b=50, l=50, r=150)
+                    margin=dict(t=50, b=50, l=50, r=150),
+                    font=dict(size=12)
                 )
                 st.plotly_chart(fig_pie, use_container_width=True)
             else:
                 st.error("No se pudieron cargar los datos de áreas de servicio")
+                st.info("Mostrando datos en formato tabla:")
+                st.dataframe(areas_data)
         except Exception as e:
             st.error(f"Error al crear gráfico de áreas: {e}")
+            st.info("Intenta recargar la página o contacta al administrador")
     
     with col2:
         try:
-            # Datos de evolución mensual
             monthly_data = pd.DataFrame({
                 'Mes': ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
                 'Ingresos': [2200000, 2350000, 2180000, 2420000, 2650000, 2850000]
             })
+            
+            # Validate data
+            if monthly_data.empty or 'Mes' not in monthly_data.columns or 'Ingresos' not in monthly_data.columns:
+                raise ValueError("Invalid monthly data structure")
             
             fig_line = px.line(
                 monthly_data, 
@@ -349,11 +370,15 @@ if selected_module == "Dashboard Principal":
                 xaxis_title="Mes",
                 yaxis_title="Ingresos (S/)",
                 yaxis=dict(tickformat=',.0f'),
-                hovermode='x unified'
+                hovermode='x unified',
+                font=dict(size=12)
             )
             st.plotly_chart(fig_line, use_container_width=True)
         except Exception as e:
             st.error(f"Error al crear gráfico de evolución: {e}")
+            st.info("Mostrando datos en formato tabla:")
+            if 'monthly_data' in locals():
+                st.dataframe(monthly_data)
 
 elif selected_module == "Análisis de Proyectos":
     st.header("🏗️ Análisis Detallado de Proyectos")
@@ -628,52 +653,55 @@ elif selected_module == "Reportes Avanzados":
             'Proyectos': [120, 145, 168, 195]
         })
         
-        fig_yearly = go.Figure()
-        
-        fig_yearly.add_trace(go.Bar(
-            x=yearly_data['Año'],
-            y=yearly_data['Ingresos'],
-            name='Ingresos',
-            marker_color='#003DA5',
-            hovertemplate='Año: %{x}<br>Ingresos: S/ %{y:,.0f}<extra></extra>'
-        ))
-        
-        fig_yearly.add_trace(go.Scatter(
-            x=yearly_data['Año'],
-            y=yearly_data['Clientes'],
-            mode='lines+markers',
-            name='Clientes',
-            yaxis='y2',
-            line=dict(color='#FFCC00', width=3),
-            marker=dict(size=10),
-            hovertemplate='Año: %{x}<br>Clientes: %{y}<extra></extra>'
-        ))
-        
-        fig_yearly.update_layout(
-            title={
-                'text': "📈 Evolución Anual - Ingresos y Clientes",
-                'x': 0.5,
-                'xanchor': 'center'
-            },
-            xaxis_title="Año",
-            yaxis=dict(
-                title="Ingresos (S/)",
-                titlefont=dict(color="#003DA5"),
-                tickfont=dict(color="#003DA5")
-            ),
-            yaxis2=dict(
-                title="Número de Clientes",
-                titlefont=dict(color="#FFCC00"),
-                tickfont=dict(color="#FFCC00"),
-                anchor="x",
-                overlaying="y",
-                side="right"
-            ),
-            legend=dict(x=0.01, y=0.99),
-            hovermode='x unified'
-        )
-        
-        st.plotly_chart(fig_yearly, use_container_width=True)
+        try:
+            fig_yearly = go.Figure()
+            
+            fig_yearly.add_trace(go.Bar(
+                x=yearly_data['Año'],
+                y=yearly_data['Ingresos'],
+                name='Ingresos',
+                marker_color='#003DA5',
+                hovertemplate='Año: %{x}<br>Ingresos: S/ %{y:,.0f}<extra></extra>'
+            ))
+            
+            fig_yearly.add_trace(go.Scatter(
+                x=yearly_data['Año'],
+                y=yearly_data['Clientes'],
+                mode='lines+markers',
+                name='Clientes',
+                yaxis='y2',
+                line=dict(color='#FFCC00', width=3),
+                marker=dict(size=10),
+                hovertemplate='Año: %{x}<br>Clientes: %{y}<extra></extra>'
+            ))
+            
+            fig_yearly.update_layout(
+                title="📈 Evolución Anual - Ingresos y Clientes",
+                xaxis_title="Año",
+                yaxis=dict(
+                    title="Ingresos (S/)",
+                    titlefont=dict(color="#003DA5"),
+                    tickfont=dict(color="#003DA5")
+                ),
+                yaxis2=dict(
+                    title="Número de Clientes",
+                    titlefont=dict(color="#FFCC00"),
+                    tickfont=dict(color="#FFCC00"),
+                    anchor="x",
+                    overlaying="y",
+                    side="right"
+                ),
+                legend=dict(x=0.01, y=0.99),
+                hovermode='x unified',
+                font=dict(size=12)
+            )
+            
+            st.plotly_chart(fig_yearly, use_container_width=True)
+            
+        except Exception as e:
+            st.error(f"Error creando gráfico anual: {e}")
+            st.info("Mostrando datos en formato tabla:")
+            st.dataframe(yearly_data)
         
         # Proyección futura
         st.subheader("🔮 Proyección de Crecimiento")
@@ -740,6 +768,7 @@ elif selected_module == "Reportes Avanzados":
     
     except Exception as e:
         st.error(f"Error en reportes avanzados: {e}")
+        st.info("Algunos módulos pueden no estar disponibles temporalmente")
 
 # Footer
 st.markdown("---")
