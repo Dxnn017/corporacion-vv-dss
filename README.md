@@ -1,5 +1,12 @@
 V&V Corporación Comercial S.A.C – DSS Analytics
 
+
+
+
+
+
+
+
 Sistema de Soporte a Decisiones (DSS) desarrollado en Streamlit, diseñado para optimizar la gestión empresarial de V&V Corporación Comercial S.A.C, una empresa especializada en servicios de metal-mecánica, electricidad, automatización, energía y refrigeración
 
 BROCHURE V&V Corporación Comerc…
@@ -24,15 +31,11 @@ Incluye módulos para:
 
 🎯 Características
 
-Dashboard con KPIs de negocio (ingresos, proyectos, satisfacción, eficiencia).
-
-Visualizaciones interactivas con Plotly y Streamlit.
-
-Comparativas de evolución y desempeño en períodos definidos.
-
-Enfoque en mejorar eficiencia operativa y satisfacción del cliente.
-
-Aplicable a distintos sectores de servicios técnicos.
+✅ Dashboard con KPIs de negocio (ingresos, proyectos, satisfacción, eficiencia).
+✅ Visualizaciones interactivas con Plotly y Streamlit.
+✅ Comparativas de evolución y desempeño en períodos definidos.
+✅ Enfoque en mejorar eficiencia operativa y satisfacción del cliente.
+✅ Aplicable a distintos sectores de servicios técnicos.
 
 🛠️ Tecnologías utilizadas
 
